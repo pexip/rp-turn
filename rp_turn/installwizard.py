@@ -16,8 +16,8 @@ import sys
 import time
 from functools import partial
 
-from si.apps.reverseproxy import steps, utils
-from si.apps.reverseproxy.config_applicator import ConfigApplicator
+from rp_turn import steps, utils
+from rp_turn.config_applicator import ConfigApplicator
 
 DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
 
