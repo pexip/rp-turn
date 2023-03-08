@@ -1,0 +1,4 @@
+[Definition]
+# Disable email notifications of jails stopping or starting
+actionstart =
+actionstop =

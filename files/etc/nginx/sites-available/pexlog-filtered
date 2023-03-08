@@ -1,0 +1,43 @@
+# Removes sensitive parameters from $request
+map $request $request_0 {
+    ~(.*)code=[^&\ \t\n]*(.*) $1code=[FILTERED]$2;
+    default $request;
+}
+map $request_0 $request_1 {
+    ~(.*)state=[^&\ \t\n]*(.*) $1state=[FILTERED]$2;
+    default $request_0;
+}
+map $request_1 $request_2 {
+    ~(.*)token=[^&\ \t\n]*(.*) $1token=[FILTERED]$2;
+    default $request_1;
+}
+map $request_2 $request_3 {
+    ~(.*)pin=[^&\ \t\n]*(.*) $1pin=[FILTERED]$2;
+    default $request_2;
+}
+map $request_3 $request_filtered {
+    ~(.*)data=[^&\ \t\n]*(.*) $1data=[FILTERED]$2;
+    default $request_3;
+}
+
+# Removes sensitive parameters from $http_referer
+map $http_referer $http_referer_0 {
+    ~(.*)code=[^&\ \t\n]*(.*) $1code=[FILTERED]$2;
+    default $http_referer;
+}
+map $http_referer_0 $http_referer_1 {
+    ~(.*)state=[^&\ \t\n]*(.*) $1state=[FILTERED]$2;
+    default $http_referer_0;
+}
+map $http_referer_1 $http_referer_2 {
+    ~(.*)token=[^&\ \t\n]*(.*) $1token=[FILTERED]$2;
+    default $http_referer_1;
+}
+map $http_referer_2 $http_referer_3 {
+    ~(.*)pin=[^&\ \t\n]*(.*) $1pin=[FILTERED]$2;
+    default $http_referer_2;
+}
+map $http_referer_3 $http_referer_filtered {
+    ~(.*)data=[^&\ \t\n]*(.*) $1data=[FILTERED]$2;
+    default $http_referer_3;
+}

@@ -1,0 +1,6 @@
+#!/bin/sh
+
+LD_LIBRARY_PATH=/opt/pexip/lib
+export LD_LIBRARY_PATH
+
+sudo PYTHONPATH=/opt/pexip/lib/python3.6/site-packages/ /usr/bin/python3 "/opt/pexip/lib/python3.6/site-packages/si/apps/bootstrap/set_interface_names.py" "$@"

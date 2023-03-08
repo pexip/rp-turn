@@ -1,0 +1,9 @@
+# Enables dhcp4 on all ethernet devices
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    switchports:
+      match:
+        name: "*"
+      dhcp4: yes

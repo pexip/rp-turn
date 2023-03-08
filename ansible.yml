@@ -1,0 +1,281 @@
+---
+- hosts: '{{ target }}'
+  vars:
+    rp_source: "vm/reverseproxy/src"
+    si_dest: "/opt/pexip/lib/python3.6/site-packages/si"
+    dest_dir: "/home/pexip/rp_server"
+  remote_user: pexip
+  become: yes
+  become_user: pexip
+  tasks:
+    - name: "Disable keeping older kernels (1/2)"
+      become: yes
+      become_user: root
+      command: mv /etc/kernel/postinst.d/apt-auto-removal /tmp
+    - name: "Disable keeping older kernels (2/2)"
+      become: yes
+      become_user: root
+      file: path={{item}} state=absent
+      with_items:
+        - '/etc/apt/apt.conf.d/01autoremove'
+        - '/etc/apt/apt.conf.d/01autoremove-kernels'
+
+    - apt:  upgrade=dist update_cache=yes dpkg_options='force-confold,force-confdef' cache_valid_time=3600
+      become: yes
+      become_user: root
+    - name: "Install required apt packages"
+      become: yes
+      become_user: root
+      action: >
+        {{ ansible_pkg_mgr }} name={{ item }} state=present
+      with_items:
+        - zile
+        - gdebi-core
+        - iptables-persistent
+        - fail2ban
+        - munin
+        - munin-node
+        - ntp
+        - open-vm-tools
+        - coturn
+        - net-tools
+        - python3-jinja2
+        - python3-pip
+        - snmp
+        - snmpd
+        - libpam-pwquality
+
+    # Opt out of ubuntu data collection
+    #- name: Opt-out of ubuntu-report
+    #  command: ubuntu-report -f send no
+    - name: "Remove popularity-contest"
+      apt:
+        pkg: popularity-contest
+        state: absent
+      become: yes
+      become_user: root
+    - name: "Disable ubuntu bug report"
+      become: yes
+      become_user: root
+      copy: dest=/etc/default/apport owner=root group=root mode="0644" force=yes content="enabled=0"
+
+    - name: "Remove dependencies that are no longer required"
+      become: yes
+      become_user: root
+      apt:
+        autoremove: yes
+    - name: "Enable keeping older kernels"
+      become: yes
+      become_user: root
+      command: mv /tmp/apt-auto-removal /etc/kernel/postinst.d/apt-auto-removal
+
+    - name: "Create nginx ssl dir"
+      become: yes
+      become_user: root
+      file: path='/etc/nginx/ssl' state=directory mode="0600" owner=root group=root
+    - name: "Install required pip packages"
+      become: yes
+      become_user: root
+      pip:
+        name: "{{ item }}"
+        executable: pip3
+      with_items:
+        - Pillow
+        - ipaddr
+        - requests
+        - twisted
+        - passlib
+        - netifaces
+    - name: "Create folders for installwizard python files"
+      become: yes
+      become_user: root
+      file: path={{item}} state=directory
+      with_items:
+        - '/usr/bin/'
+        - '{{si_dest}}/apps/bootstrap/'
+        - '{{si_dest}}/apps/reverseproxy/'
+        - '{{si_dest}}/apps/reverseproxy/steps/'
+        - '{{si_dest}}/platform/python/'
+        - '{{si_dest}}/platform/filesystem/'
+    - name: "Install installwizard python files"
+      become: yes
+      become_user: root
+      copy: src={{item.0}} dest={{item.1}} mode="0644" owner="root"
+      with_items:
+        - [[ '{{source_path}}/si/apps/reverseproxy/steps', '{{si_dest}}/apps/reverseproxy/' ]]
+        - [[ '{{source_path}}/si/apps/reverseproxy/templates', '{{si_dest}}/apps/reverseproxy/' ]]
+        - [[ '{{source_path}}/si/apps/reverseproxy/__init__.py', '{{si_dest}}/apps/reverseproxy/' ]]
+        - [[ '{{source_path}}/si/apps/reverseproxy/config_applicator.py', '{{si_dest}}/apps/reverseproxy/' ]]
+        - [[ '{{source_path}}/si/apps/reverseproxy/installwizard.py', '{{si_dest}}/apps/reverseproxy/' ]]
+        - [[ '{{source_path}}/si/apps/reverseproxy/step_error.py', '{{si_dest}}/apps/reverseproxy/' ]]
+        - [[ '{{source_path}}/si/apps/reverseproxy/utils.py', '{{si_dest}}/apps/reverseproxy/' ]]
+        - [[ '{{source_path}}/si/apps/__init__.py', '{{si_dest}}/apps/' ]]
+        - [[ '{{source_path}}/si/__init__.py', '{{si_dest}}/' ]]
+        - [[ '{{source_path}}/si/platform/__init__.py', '{{si_dest}}/platform/' ]]
+        - [[ '{{source_path}}/si/platform/python/__init__.py', '{{si_dest}}/platform/python/' ]]
+        - [[ '{{source_path}}/si/platform/python/nrcmd.py', '{{si_dest}}/platform/python/' ]]
+        - [[ '{{source_path}}/si/platform/filesystem/__init__.py', '{{si_dest}}/platform/filesystem/' ]]
+        - [[ '{{source_path}}/si/platform/filesystem/fileutils.py', '{{si_dest}}/platform/filesystem/' ]]
+        - [[ '{{source_path}}/si/platform/filesystem/filewriter.py', '{{si_dest}}/platform/filesystem/' ]]
+        - [[ '{{source_path}}/si/platform/string/__init__.py', '{{si_dest}}/platform/string/' ]]
+        - [[ '{{source_path}}/si/platform/string/utils.py', '{{si_dest}}/platform/string/' ]]
+    - name: "Install installwizard bash script"
+      become: yes
+      become_user: root
+      copy: src={{item.0}} dest={{item.1}} mode="0755" owner="root"
+      with_items:
+        - [[ '{{source_path}}/{{rp_source}}/usr/bin/installwizard', '/usr/bin/' ]]
+        - [[ '{{source_path}}/{{rp_source}}/lib/systemd/system/set-interface-names.service', '/lib/systemd/system/' ]]
+        - [[ '{{source_path}}/{{rp_source}}/usr/sbin/set-interface-names', '/usr/sbin']]
+        - [[ '{{source_path}}/si/apps/bootstrap/set_interface_names.py', '{{si_dest}}/apps/bootstrap/']]
+    - name: "Enable set-interface-names with symlink"
+      become: yes
+      become_user: root
+      file: src=/lib/systemd/system/set-interface-names.service dest=/etc/systemd/system/network-pre.target.wants/set-interface-names.service owner=root group=root mode="0644" state=link
+    - name: "Remove default nginx config"
+      become: yes
+      become_user: root
+      file: path={{item}} state=absent
+      with_items:
+        - '/etc/nginx/sites-available/default'
+        - '/etc/nginx/sites-enabled/default'
+
+    - name: "Install new system configuration"
+      become: yes
+      become_user: root
+      copy: src={{item.0}} dest={{item.1}} mode="0644" owner="root"
+      with_items:
+        - [[ '{{source_path}}/{{rp_source}}/etc/security/limits.d/pexiplimits.conf', '/etc/security/limits.d/' ]]
+        - [[ '{{source_path}}/{{rp_source}}/etc/sysctl.d/20-pexip-limits.conf', '/etc/sysctl.d/' ]]
+        - [[ '{{source_path}}/{{rp_source}}/etc/netplan/01-netcfg.yaml', '/etc/netplan/' ]]
+        - [[ '{{source_path}}/{{rp_source}}/etc/nginx/nginx.conf', '/etc/nginx/' ]]
+        - [[ '{{source_path}}/{{rp_source}}/etc/nginx/includes/pex-rewrites.conf', '/etc/nginx/includes/' ]]
+        - [[ '{{source_path}}/{{rp_source}}/etc/nginx/sites-available/pexlog-filtered', '/etc/nginx/sites-available/' ]]
+        - [[ '{{source_path}}/{{rp_source}}/etc/logrotate.d/nginx', '/etc/logrotate.d/' ]]
+        - [[ '{{source_path}}/{{rp_source}}/etc/ssl/pexip.cnf', '/etc/ssl/' ]]
+        - [[ '{{source_path}}/{{rp_source}}/etc/ssl/certs/dhparam.pem', '/etc/ssl/certs/' ]]
+        - [[ '/tmp/_rpbuild/motd', '/etc/' ]]
+        - [[ '{{source_path}}/{{rp_source}}/etc/fail2ban/filter.d/pexiprp.conf', '/etc/fail2ban/filter.d/' ]]
+        - [[ '{{source_path}}/{{rp_source}}/etc/fail2ban/action.d/sendmail-whois-lines.local', '/etc/fail2ban/action.d/sendmail-whois-lines.local' ]]
+        - [[ '{{source_path}}/{{rp_source}}/etc/fail2ban/jail.local', '/etc/fail2ban/' ]]
+        - [[ '{{source_path}}/{{rp_source}}/etc/munin/munin.conf', '/etc/munin/' ]]
+        - [[ '{{source_path}}/{{rp_source}}/etc/munin/munin-node.conf', '/etc/munin/' ]]
+        - [[ '{{source_path}}/{{rp_source}}/etc/update-manager/release-upgrades', '/etc/update-manager/' ]]
+        - [[ '{{source_path}}/{{rp_source}}/usr/share/pam-configs/pexpasswordpolicy', '/usr/share/pam-configs']]
+        - [[ '{{source_path}}/{{rp_source}}/var/www', '/var/' ]]
+
+    - name: "Setup cron job to logrotate every hour"
+      become: yes
+      become_user: root
+      file: src=/etc/cron.daily/logrotate dest=/etc/cron.hourly/logrotate owner=root group=root mode="0644" state=link force=yes follow=false
+
+    - name: "Create sites-enabled symlink to pexlog-filtered"
+      become: yes
+      become_user: root
+      file: src=/etc/nginx/sites-available/pexlog-filtered dest=/etc/nginx/sites-enabled/pexlog-filtered owner=root group=root mode="0644" state=link force=yes follow=false
+    # Checks whether /etc/nginx/nginx.conf is valid (warning: this fails if run after creating the symlink)
+    - name: "Re-start nginx"
+      become: yes
+      become_user: root
+      service: name=nginx state=restarted
+    # Creates symlink to non-existent file (pexapp) after restarting nginx so that the service can start correctly
+    - name: "Create sites-enabled symlink to pexapp"
+      become: yes
+      become_user: root
+      file: src=/etc/nginx/sites-available/pexapp dest=/etc/nginx/sites-enabled/pexapp owner=root group=root mode="0644" state=link force=yes follow=false
+
+    - name: "Install profile file to invoke installwizard on first login"
+      copy: src={{item.0}} dest={{item.1}} mode="0644"
+      with_items:
+        - [[ '{{source_path}}/{{rp_source}}/home/pexip/.profile', '/home/pexip/' ]]
+    - name: "Ensure fail2ban disabled"
+      become: yes
+      become_user: root
+      service: name=fail2ban enabled=no state=stopped
+    - name: "Disable most default munin plugins"
+      become: yes
+      become_user: root
+      file: path={{item}} state=absent
+      with_items:
+        - '/etc/munin/plugins/users'
+        - '/etc/munin/plugins/irqstats'
+        - '/etc/munin/plugins/swap'
+        - '/etc/munin/plugins/uptime'
+        - '/etc/munin/plugins/forks'
+        - '/etc/munin/plugins/munin_stats'
+        - '/etc/munin/plugins/open_files'
+        - '/etc/munin/plugins/open_inodes'
+        - '/etc/munin/plugins/df'
+        - '/etc/munin/plugins/interrupts'
+        - '/etc/munminclass=3, minlen=8in/plugins/vmstat'
+        - '/etc/munin/plugins/processes'
+        - '/etc/munin/plugins/netstat'
+        - '/etc/munin/plugins/df_inode'
+        - '/etc/munin/plugins/entropy'
+        - '/etc/munin/plugins/fw_packets'
+        - '/etc/munin/plugins/if_err_eth0'
+        - '/etc/munin/plugins/threads'
+        - '/etc/munin/plugins/proc_pri'
+        - '/etc/munin/plugins/diskstats'
+        # - '/etc/munin/plugins/cpu'
+        # - '/etc/munin/plugins/load'
+        # - '/etc/munin/plugins/memory'
+        # - '/etc/munin/plugins/if_eth0'
+
+    - name: "Create munin stats symlink"
+      become: yes
+      become_user: root
+      file: src=/var/cache/munin/www/localdomain/localhost.localdomain dest=/var/www/stats/img/localhost.localdomain owner=root group=root mode="0644" state=link force=yes
+
+    - name: "Install new ssh configuration ref issue 12919"
+      become: yes
+      become_user: root
+      copy: src={{item.0}} dest={{item.1}} mode="0644"
+      with_items:
+        - [[ '{{source_path}}/{{rp_source}}/etc/ssh/sshd_config', '/etc/ssh/sshd_config' ]]
+
+    - name: "Set new password complexity policy"
+      become: yes
+      become_user: root
+      command: echo "set libpam-runtime/profiles pexpasswordpolicy, unix, systemd, capability" | debconf-communicate
+
+    - name: "Expire the pexip user password"
+      become: yes
+      become_user: root
+      command: chage -d 0 pexip
+
+    - name: "Change GRUB_CMD_LINE_LINUX_DEFAULT to enable serial adapters"
+      become: yes
+      become_user: root
+      lineinfile:
+        dest: /etc/default/grub
+        regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
+        line: 'GRUB_CMDLINE_LINUX_DEFAULT="quiet splash security=selinux selinux=1 console=ttyS0 console=tty0 earlyprintk=ttyS0 rootdelay=300 fsck.mode=force fsck.repair=yes"'
+        backrefs: yes
+      register: grubcmdline
+    - name: "update-grub"
+      become: yes
+      become_user: root
+      command: update-grub
+      when: grubcmdline.changed
+
+    - name: "Clean apt cache"
+      become: yes
+      become_user: root
+      command: apt-get clean
+
+    - name: "Remove unneeded files to make OVA smaller (1/2)"
+      become: yes
+      become_user: root
+      command: /usr/bin/find /var/log /var/cache /var/lib/apt/lists -name "cracklib" -prune -o -type f -print
+      register: files_to_delete
+    - name: "Remove unneeded files to make OVA smaller (2/2)"
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items: "{{ files_to_delete.stdout }}"
+
+    - name: "Free all unused storage"
+      become: yes
+      become_user: root
+      command: fstrim -av

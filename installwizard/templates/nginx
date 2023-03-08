@@ -1,0 +1,103 @@
+# Upstream servers
+upstream pexip {
+    ip_hash;
+{% for node in confnodes %}
+    server {{node}}:443 weight=1 max_fails=0;
+{% endfor %}
+    keepalive 1024;
+}
+
+# Redirect HTTP to HTTPS
+server {
+{% for address in addresses %}
+    listen {{address}}:80;
+{% endfor %}
+    server_name {{fqdn}};
+    return 301 https://$host$request_uri;
+}
+
+server {
+{% for address in addresses %}
+    listen {{address}}:443 ssl;
+{% endfor %}
+    server_name {{fqdn}};
+
+    include /etc/nginx/includes/pex-rewrites.conf;
+
+    ssl_certificate ssl/pexip.pem;
+    ssl_certificate_key ssl/pexip.pem;
+    ssl_session_timeout 5m;
+
+    ssl_protocols TLSv1.2 TLSv1.3; # Dropping SSLv3, ref: POODLE. Dropping TLSv1. Dropping TLSv1.1
+    ssl_ciphers !eNULL:!EXP:!DES:!3DES:!RC4:!RC2:!IDEA:!CAMELLIA:!SEED:!MD5:!aNULL:!ADH:!SRP:!PSK:EECDH+AESGCM:EDH+AESGCM;
+    ssl_ecdh_curve secp384r1;
+    ssl_prefer_server_ciphers on;
+    ssl_dhparam /etc/ssl/certs/dhparam.pem;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_tickets off;
+
+    error_page 404 /404.html;
+    error_page 500 502 503 504 /50x.html;
+
+    # Redirect from web root to /webapp
+    location / {
+        return 301 /webapp$is_args$args;
+    }
+
+    proxy_ssl_server_name on;
+
+{% for location in ["/api", "/webapp", "/static", "/teams"] %}
+{% set logfile = location.split("/")[-1] %}
+    location {{location}} {
+        proxy_pass https://pexip;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_set_header Host $host;
+        proxy_redirect off;
+  {%if location == "/api"%}
+        proxy_connect_timeout 20s;
+  {% else %}
+        proxy_connect_timeout 3s;
+  {% endif %}
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream http_500 http_502 http_503 http_504 error timeout non_idempotent;
+        access_log /var/log/nginx/{{logfile}}.access.log pexapplog;
+        error_log /var/log/nginx/{{logfile}}.error.log;
+
+        # Create separate error pages for each location so that the log message ends up in the right file.
+        error_page 404 {{location}}/404.html;
+        error_page 500 502 503 504 {{location}}/50x.html;
+  {% for fail_location in ["404.html", "50x.html"] %}
+        location {{location}}/{{fail_location}} {
+            internal;
+            alias /var/www/{{fail_location}};
+        }
+  {% endfor %}
+    }
+{% endfor %}
+
+    location /stats {
+        root /var/www;
+{% for mgmtnet in mgmtnets %}
+        allow {{mgmtnet}};
+{% endfor %}
+        deny all;
+        access_log /var/log/nginx/stats.access.log pexapplog;
+        error_log /var/log/nginx/stats.error.log;
+    }
+
+{% for fail_location in ["/404.html", "/50x.html"] %}
+    location {{fail_location}} {
+        root /var/www;
+    }
+{% endfor %}
+}
+
+{% if enablecsp %}
+# Adds Content Security-Policy into $csp variable if it is missing from conference node
+map $upstream_http_content_security_policy $csp {
+    '' "default-src 'self'; frame-src 'self' https://telemetryservice.firstpartyapps.oaspapps.com/telemetryservice/telemetryproxy.html https://*.microsoft.com https://*.office.com; style-src 'self' 'unsafe-inline' https://*.microsoft.com https://*.office.com; object-src 'self'; font-src 'self' https://*.microsoft.com https://*.office.com; img-src 'self' https://www.adobe.com data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.microsoft.com https://*.office.com https://ajax.aspnetcdn.com https://api.keen.io; media-src 'self' blob:; connect-src 'self' https://*.microsoft.com https://*.office.com https://example.com;";
+}
+add_header Content-Security-Policy $csp;
+{% endif %}

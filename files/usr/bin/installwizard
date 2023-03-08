@@ -1,0 +1,2 @@
+#!/bin/sh
+sudo PYTHONPATH=/opt/pexip/lib/python3.6/site-packages/ python3 "/opt/pexip/lib/python3.6/site-packages/si/apps/reverseproxy/installwizard.py" $@
