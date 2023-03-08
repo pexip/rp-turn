@@ -1,0 +1,28 @@
+#cloud-config
+package_update: true
+package_upgrade: true
+
+users:
+  - name: pexip
+    lock_passwd: True
+    sudo: [ "ALL=(ALL) NOPASSWD:ALL" ]
+    shell: /bin/bash
+    # ssh_authorized_keys:
+    #   - <ssh public key>
+
+
+ansible:
+  install_method: distro
+  package_name: ansible
+  run_user: pexip
+  pull:
+    # Local development environment
+    # Run a http server using: python -m http.server --bind 192.168.100.1 8000
+    # url: http://192.168.100.1:8000/
+    url: https://github.com/pexip/rp-turn
+    playbook_name: "ansible.yml"
+
+power_state:
+ mode: poweroff
+ message: Cloud-init completed
+ condition: True
