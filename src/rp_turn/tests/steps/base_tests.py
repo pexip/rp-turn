@@ -11,9 +11,7 @@ from functools import partial
 from io import StringIO
 
 # 3rd party imports
-from unittest import mock
-
-import twisted.trial.unittest
+from unittest import SkipTest, TestCase, mock
 
 # Local application/library specific imports
 import rp_turn.steps.base_step
@@ -32,7 +30,7 @@ from rp_turn.tests.utils import (
 DEV_LOGGER = logging.getLogger("developer.apps.metrics")
 
 
-class QuestionUtils(twisted.trial.unittest.TestCase):
+class QuestionUtils(TestCase):
     """
     Tests that all types of questions must have
     """
@@ -69,7 +67,7 @@ class QuestionUtils(twisted.trial.unittest.TestCase):
             step.ask = mock.Mock(side_effect=fakeask)
             step.display = mock.Mock(return_value=None)
         if question_str is None:
-            raise twisted.trial.unittest.SkipTest("Missing _question")
+            raise SkipTest("Missing _question")
 
         step.stdout = mock.Mock()
         step.stdin = mock.Mock()

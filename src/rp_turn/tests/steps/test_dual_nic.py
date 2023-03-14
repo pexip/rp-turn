@@ -7,9 +7,7 @@ Tests the DualNicStep from the installwizard
 from functools import partial
 
 # 3rd party imports
-from unittest import mock
-
-import twisted.trial.unittest
+from unittest import TestCase, mock
 
 # Local application/library specific imports
 import rp_turn.tests.steps as tests
@@ -18,7 +16,7 @@ from rp_turn import steps, utils
 from rp_turn.step_error import StepError
 
 
-class TestIntroDualNic(twisted.trial.unittest.TestCase):
+class TestIntroDualNic(TestCase):
     """Tests the _intro_dual_nic Question in DualNicStep with 3 NICs"""
 
     def setUp(self):
@@ -225,7 +223,7 @@ class TestGetNicName3Nics(TestGetNicName2Nics):
             self.assertRaises(StepError, question, config, external=True)
 
 
-class TestSaveNicSettings(twisted.trial.unittest.TestCase):
+class TestSaveNicSettings(TestCase):
     """Tests the _get_nic_name Question in DualNicStep with 3 NICs"""
 
     def setUp(self):

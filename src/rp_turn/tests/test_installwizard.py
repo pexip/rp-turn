@@ -17,10 +17,8 @@ from io import StringIO
 from ipaddress import IPv4Address
 
 # 3rd party imports
-from unittest import mock
+from unittest import TestCase, mock
 from unittest.mock import patch
-
-import twisted.trial.unittest
 
 # Local application/library specific imports
 from rp_turn import installwizard, steps
@@ -145,7 +143,7 @@ class DummyStep:  # pylint: disable=too-few-public-methods
             self._my_testcase.assertEqual(config[f"testitem{i}"], f"testvalue{i}")
 
 
-class TestInstallWizard(twisted.trial.unittest.TestCase):
+class TestInstallWizard(TestCase):
     """Tests the InstallWizard class"""
 
     nic_configs = {

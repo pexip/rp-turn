@@ -9,9 +9,7 @@ from functools import partial
 from ipaddress import IPv4Interface, IPv4Network
 
 # 3rd party imports
-from unittest import mock
-
-import twisted.trial.unittest
+from unittest import TestCase, mock
 
 # Import steps and default cases
 # Local application/library specific imports
@@ -23,7 +21,7 @@ from rp_turn.step_error import StepError
 STEPCLASS = partial(steps.RoutesStep, nic_name="nic", nic_mac="00:11:22:33:44:55:66")
 
 
-class TestIntroQuestion(twisted.trial.unittest.TestCase):
+class TestIntroQuestion(TestCase):
     """Tests the _intro question from the RoutesStep"""
 
     def setUp(self):

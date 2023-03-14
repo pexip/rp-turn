@@ -4,9 +4,9 @@ Test the ReverseProxy Config Applicator
 import copy
 import logging
 from ipaddress import IPv4Interface
+from unittest import SkipTest, TestCase
 from unittest.mock import patch
 
-import twisted.trial.unittest
 import yaml
 
 # Local application/library specific imports
@@ -178,7 +178,7 @@ def mock_check_call(
         TestDefaultSettings.DummyTerminal.append(command)
 
 
-class TestDefaultSettings(twisted.trial.unittest.TestCase):
+class TestDefaultSettings(TestCase):
     """Base class to check if config values are applied"""
 
     DummyFileSystem = {}
@@ -232,7 +232,7 @@ class TestDefaultSettings(twisted.trial.unittest.TestCase):
     def is_settings_valid(self):
         """Tests if settings are valid"""
         # pylint: disable=pointless-exception-statement
-        twisted.trial.unittest.SkipTest("Unimplemented")
+        SkipTest("Unimplemented")
 
 
 class TestBaseNetworkSettings(TestDefaultSettings):
