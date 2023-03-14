@@ -4,10 +4,17 @@ version = "0.1.0"
 description = "Pexip Reverse Proxy and Turn Server installwizard"
 authors = ["Michael Oultram <michael.oultram@pexip.com>"]
 readme = "README.md"
-packages = [{include = "rp_turn"}]
+packages = [{include = "rp_turn", from = "src"}]
+exclude = [
+    "**/tests/**/*"
+]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.dependencies]
-python = "^3.7.1"
+python = ">=3.9.0,<4.0"
 Twisted = "^22.10.0"
 Pillow = "^9.4.0"
 ipaddr = "^2.2.0"
@@ -15,8 +22,101 @@ requests = "^2.28.2"
 passlib = "^1.7.4"
 netifaces = "^0.11.0"
 Jinja2 = "^3.1.2"
+PyYAML = "^6.0"
 
+[tool.poetry.dev-dependencies]
+black = "^23.1.0"
+isort = "^5.12.0"
+mypy = "^1.1.1"
+mypy-extensions = "1.0.0"
+pytest = "^7.2.2"
+coverage = "^7.2.1"
+pylint = "~2.17.0"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/pexip/rp-turn/issues"
+
+[tool.black]
+line-length = 88
+target-version = ['py39', 'py310', 'py311']
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+line_length = 88
+
+[tool.pylint.MASTER]
+jobs = 0
+persistent = true
+suggestion-mode = true
+disable = """
+    locally-disabled,
+    fixme,
+    duplicate-code,
+    too-many-ancestors,
+"""
+
+[tool.pylint.FORMAT]
+max-line-length=120
+
+[tool.pylint.REPORTS]
+output-format = "colorized"
+reports = false
+score = true
+
+[tool.pylint.LOGGING]
+logging-format-style = "old"
+logging-modules = "logging"
+
+[tool.pylint.MISCELLANEOUS]
+notes="""
+    FIXME,
+    XXX,
+    TODO,
+"""
+
+[tool.pylint.TYPECHECK]
+# pyVmomi typechecking is picked up by mypy
+ignored-modules = """
+    lxml,
+    pyVmomi,
+"""
+
+[tool.pylint.BASIC]
+good-names = """
+    i,
+    j,
+    k,
+    ex,
+    Run,
+    _,
+    T,
+    tx,
+    rx,
+    vm,
+"""
+
+[tool.pylint.CLASSES]
+defining-attr-methods = """
+    __init__,
+    __new__,
+    setUp,
+    asyncSetUp,
+"""
+
+[tool.pylint.DESIGN]
+max-args = 8
+max-attributes = 10
+
+[tool.coverage.report]
+# Show missing lines
+show_missing = true
+
+# Fail when <= 81% coverage
+fail_under = 81
+
+# Omit test directories from the report
+omit = ["*/tests/*"]
