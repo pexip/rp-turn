@@ -4,7 +4,9 @@ from __future__ import print_function
 
 import logging
 import sys
+from collections import defaultdict
 from functools import partial
+from typing import Any, Callable
 
 from rp_turn import utils
 from rp_turn.step_error import StepError
@@ -18,23 +20,25 @@ class Step:
     Child classes should add functions into Class.questions and use self.ask("message") to get responses
     """
 
-    def __init__(self, step_msg):
+    def __init__(self, step_msg: str):
         self._step_msg = step_msg
         self._last_ask_errored = False
         self._last_msg = ""
         self.prompt = "> "
-        self.questions = []  # Overwritten by child class
+        self.questions: list[
+            Callable[[defaultdict], None] | partial
+        ] = []  # Overwritten by child class
         self._step_id = 0  # Overwritten by run
         self._total_steps = 0  # Overwritten by run
         self.stdin = sys.stdin
 
     @staticmethod
-    def display(message):
+    def display(message: str) -> None:
         """Prints a message to the user"""
         DEV_LOGGER.info("Displayed: %s", message)
         print("\n" + message)
 
-    def ask(self, message, default=None):
+    def ask(self, message: str, default: str | None = None) -> str:
         """Asks the user for input to a question"""
         repeat_ask = message == self._last_msg
         self._last_msg = message
@@ -55,12 +59,13 @@ class Step:
             response = default
         return response
 
-    def ask_yes_no(self, message, default=None):
+    def ask_yes_no(self, message: str, default: bool | None = None) -> bool:
         """Asks the user for input to a yes/no question"""
         DEV_LOGGER.info("Expecting Yes/No for next ask")
+        default_str: str | None = None
         if isinstance(default, bool):
-            default = "Yes" if default else "No"
-        response = self.ask(message + " (Yes/No)", default).lower().strip()
+            default_str = "Yes" if default else "No"
+        response = self.ask(message + " (Yes/No)", default_str).lower().strip()
         DEV_LOGGER.info("Response: %s", response)
         if response in ["y", "yes", "true"]:
             return True
@@ -68,7 +73,12 @@ class Step:
             return False
         raise StepError("Please enter Yes or No")
 
-    def run_once(self, config, print_header=False, raise_invalid=False):
+    def run_once(
+        self,
+        config: defaultdict,
+        print_header: bool = False,
+        raise_invalid: bool = False,
+    ) -> None:
         """Attempts once to run one question"""
         if print_header:
             print(self.header)
@@ -95,7 +105,14 @@ class Step:
             )
             self.questions.insert(0, question)
 
-    def run(self, config, step_id, total_steps, print_header=True, raise_invalid=False):
+    def run(
+        self,
+        config: defaultdict,
+        step_id: int,
+        total_steps: int,
+        print_header: bool = True,
+        raise_invalid: bool = False,
+    ) -> None:
         """Calls run_once until we run out of questions"""
         self._step_id = step_id
         self._total_steps = total_steps
@@ -105,7 +122,7 @@ class Step:
                 print_header = False
 
     @property
-    def header(self):
+    def header(self) -> str:
         """Header for the step"""
         header = """\
 ==========================================================
@@ -117,12 +134,12 @@ class Step:
         step_msg = center(self._step_msg, header_width)
         return header.format(step_num, step_msg)
 
-    def default_config(self, _saved_config, _config):
+    def default_config(self, _saved_config: defaultdict, _config: defaultdict) -> None:
         """Load config from saved config. Suggest values if invalid/missing"""
         DEV_LOGGER.warning("%s has no default_config method", self._step_msg)
 
 
-def center(message, width):
+def center(message: str, width: int) -> str:
     """Centers text in a string of fixed length"""
     message_length = len(message)
     padding = max(width - message_length, 0)
@@ -134,23 +151,25 @@ class MultiStep(Step):
     Base step that requests multiple inputs of the same type
     """
 
-    def __init__(self, step_msg, keyname, end_on_enter=True):
-        Step.__init__(self, step_msg)
+    def __init__(
+        self, step_msg: str, keyname: str | list[str], end_on_enter: bool = True
+    ):
+        super().__init__(step_msg)
         self.questions = [self._use_default]
         self._keyname = keyname
-        self._answers = []
+        self._answers: list[Any] = []
         self._end_on_enter = end_on_enter
 
-    def format_value(self, value):
+    def format_value(self, value: Any) -> str:
         """Converts stored value into human readable value"""
         return str(value)
 
-    def validate(self, response):
+    def validate(self, response: str) -> Any:
         """Validates whether a stored value is valid"""
         DEV_LOGGER.warning("%s has no validate method", self._step_msg)
         return response
 
-    def _use_default(self, config):
+    def _use_default(self, config: defaultdict) -> None:
         """Shows user a list of default values and ask whether they want to use them"""
         default_values = utils.get_config_value_by_path(config, self._keyname)
         if default_values:
@@ -158,7 +177,7 @@ class MultiStep(Step):
             for value in default_values:
                 msg += "\n  - " + self.format_value(value)
             msg += f"\nUse these default {self._step_msg}?"
-            response = self.ask_yes_no(msg, default="Yes")
+            response = self.ask_yes_no(msg, default=True)
             if response:
                 return
         if self._end_on_enter:
@@ -167,7 +186,7 @@ class MultiStep(Step):
             )
         self.questions.append(self._get_another_answer)
 
-    def _get_another_answer(self, config):
+    def _get_another_answer(self, config: defaultdict) -> None:
         """Asks the user for another answer"""
         singular_msg = self._step_msg[:-1]
         response = self.ask(f"{singular_msg} {len(self._answers) + 1}?")

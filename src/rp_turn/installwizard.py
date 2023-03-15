@@ -14,7 +14,9 @@ import os
 import signal
 import sys
 import time
+from collections import defaultdict
 from functools import partial
+from typing import Any, Generator
 
 from rp_turn import steps, utils
 from rp_turn.config_applicator import ConfigApplicator
@@ -28,8 +30,12 @@ class InstallWizard:
     """
 
     def __init__(
-        self, skip_ui=False, skip_apply=True, config_file_path=None, verify_json=False
-    ):
+        self,
+        skip_ui: bool = False,
+        skip_apply: bool = True,
+        config_file_path: str | None = None,
+        verify_json: bool = False,
+    ) -> None:
         # pylint: disable=too-many-statements
         # pylint: disable=too-many-branches
         # Must verify the JSON file if we are skipping UI
@@ -37,16 +43,16 @@ class InstallWizard:
             verify_json = True
 
         # Initialise variables
-        self._config_file_path = os.getenv("HOME") + "/.reverseproxy-config.json"
+        self._config_file_path = os.getenv("HOME", "~") + "/.reverseproxy-config.json"
         if config_file_path:
             self._config_file_path = config_file_path
         self._step_num = 0
         self._skip_ui = skip_ui
         self._skip_apply = skip_apply
-        self._steps = []
-        self._next_steps = (
-            []
-        )  # A list used to add additional steps after the current step
+        self._steps: list[steps.Step] = []
+        self._next_steps: list[
+            steps.Step
+        ] = []  # A list used to add additional steps after the current step
         DEV_LOGGER.info("Using config path: %s", self._config_file_path)
 
         # Load saved_config from file and create an empty config to fill
@@ -141,7 +147,7 @@ class InstallWizard:
         # self._steps = [steps.TurnServerStep()]  # TODO: REMOVE ME
 
     @staticmethod
-    def _get_attached_nics():
+    def _get_attached_nics() -> list[tuple[str, str]]:
         """
         Gets the nic names and mac addresses of attached network interfaces
         Ignores the lo interface
@@ -175,7 +181,9 @@ class InstallWizard:
             sys.exit(1)
         return nics
 
-    def _load_saved_config(self, exit_on_invalid_json=True):
+    def _load_saved_config(
+        self, exit_on_invalid_json: bool = True
+    ) -> defaultdict | None:
         """
         Loads the saved_config from file and converts to a nested dictionary
         Returns None if file is missing
@@ -183,8 +191,8 @@ class InstallWizard:
         """
         try:
             with open(self._config_file_path, encoding="utf-8") as file_obj:
-                saved_config = json.load(file_obj)
-            saved_config = utils.make_nested_dict(saved_config)
+                saved_config_raw = json.load(file_obj)
+            saved_config: defaultdict = utils.make_nested_dict(saved_config_raw)
             DEV_LOGGER.info("Loaded saved_config: %s", saved_config)
             return saved_config
         except IOError:
@@ -199,7 +207,7 @@ class InstallWizard:
                 sys.exit(1)
         return None
 
-    def _gather_user_input(self):
+    def _gather_user_input(self) -> None:
         """Loops through all the steps calling each run method with a shared config dictionary"""
         # NOTE: Steps can be added part way through so we cannot iterate over self._steps collection
         while self._step_num < len(self._steps):
@@ -216,18 +224,18 @@ class InstallWizard:
             self._insert_next_steps()
             self._step_num += 1
 
-    def _insert_next_steps(self):
+    def _insert_next_steps(self) -> None:
         """Append list of _next_steps into _steps, keeping the same order"""
         self._next_steps.reverse()
         for additional_step in self._next_steps:
             self._steps.insert(self._step_num + 1, additional_step)
         self._next_steps = []
 
-    def add_next_step(self, step):
+    def add_next_step(self, step: steps.Step) -> None:
         """Adds a step to the list of steps that should be run next"""
         self._next_steps.append(step)
 
-    def _save_user_config(self):
+    def _save_user_config(self) -> None:
         """Redacts some fields from the config and saves as a JSON file"""
         try:
             # Some parts of the config should not be saved
@@ -246,7 +254,9 @@ class InstallWizard:
             DEV_LOGGER.exception("Unable to save config")
             print("Unable to save config: " + str(error))
 
-    def _dict_diff(self, path, saved_config, config):
+    def _dict_diff(
+        self, path: list[str], saved_config: defaultdict, config: defaultdict
+    ) -> list[tuple[list[str], str]]:
         """Works out the differences between two dictionaries"""
         output = []
         for key in set(itertools.chain(saved_config.keys(), config.keys())):
@@ -270,7 +280,9 @@ class InstallWizard:
                 )
         return output
 
-    def _config_diff(self, exit_on_invalid_json=True):
+    def _config_diff(
+        self, exit_on_invalid_json: bool = True
+    ) -> Generator[tuple[list[str], str], None, None]:
         """Works out the difference between the saved_config and self._config"""
         # Load the saved_config from file again
         saved_config = self._load_saved_config(
@@ -291,7 +303,7 @@ class InstallWizard:
             if path_reason[0] not in acceptable_differences
         )
 
-    def _apply_user_config(self):
+    def _apply_user_config(self) -> None:
         """Applies a configuration to the system"""
         if self._skip_ui:
             # We skipped the user input, so we need to check that the saved_config had all the required fields
@@ -307,7 +319,7 @@ class InstallWizard:
         # Apply the configuration to the system
         ConfigApplicator(self._config).apply()
 
-    def run(self):
+    def run(self) -> None:
         """Runs the installwizard"""
         if not self._skip_ui:
             DEV_LOGGER.info("Going through UI")
@@ -325,7 +337,7 @@ class InstallWizard:
             reboot()
 
 
-def reboot():
+def reboot() -> None:
     """Reboot the system"""
     print()
     print("Rebooting.")
@@ -336,7 +348,7 @@ def reboot():
     print("\r\nSystem going down for reboot\r\n")
 
 
-def setup_logger(debug=False, dev_log=True):
+def setup_logger(debug: bool = False, dev_log: bool = True) -> None:
     """Sets up the dev logger to output to /dev/log (and optionally stdout)"""
     # Setup logging
     format_pattern = " ".join(
@@ -366,10 +378,10 @@ def setup_logger(debug=False, dev_log=True):
         logger.addHandler(stdout_handler)
 
 
-def main():
+def main() -> None:
     """Execute installation wizard."""
 
-    def on_ctrlc(_one, _two):
+    def on_ctrlc(_one: Any, _two: Any) -> None:
         """SIGINT/Ctrl-C handler to exit gracefully on Ctrl-C"""
         sys.exit(-1)
 

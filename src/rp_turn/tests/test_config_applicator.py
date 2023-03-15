@@ -181,8 +181,8 @@ def mock_check_call(
 class TestDefaultSettings(TestCase):
     """Base class to check if config values are applied"""
 
-    DummyFileSystem = {}
-    DummyTerminal = []
+    DummyFileSystem: dict[str, str] = {}
+    DummyTerminal: list[str] = []
 
     def __init__(self, methodname, function_to_test=None):
         super().__init__(methodname)
@@ -535,7 +535,7 @@ class TestCertificateSettings(TestDefaultSettings):
     """Test ConfigApplicator._apply_certificates"""
 
     def __init__(self, methodname):
-        TestDefaultSettings.__init__(self, methodname, "_apply_certificate_config")
+        super().__init__(methodname, "_apply_certificate_config")
 
     def is_settings_valid(self):
         if (
@@ -601,7 +601,7 @@ class TestFail2BanSettings(TestDefaultSettings):
     """Test ConfigApplicator._apply_fail2ban"""
 
     def __init__(self, methodname):
-        TestDefaultSettings.__init__(self, methodname, "_apply_fail2ban")
+        super().__init__(methodname, "_apply_fail2ban")
 
     def is_settings_valid(self):
         if self._config["enablefail2ban"]:
@@ -620,7 +620,7 @@ class TestSNMPSettings(TestDefaultSettings):
     """Test ConfigApplicator._apply_snmp"""
 
     def __init__(self, methodname):
-        TestDefaultSettings.__init__(self, methodname, "_apply_snmp")
+        super().__init__(methodname, "_apply_snmp")
 
     def is_settings_valid(self):
         if self._config["snmp"]["enabled"]:

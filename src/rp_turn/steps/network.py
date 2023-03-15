@@ -3,7 +3,9 @@ Pexip installation wizard step to setup a network interface
 """
 import logging
 import subprocess
+from collections import defaultdict
 from functools import partial
+from ipaddress import IPv4Address, IPv4Network
 
 from rp_turn import utils
 from rp_turn.steps import Step
@@ -15,8 +17,15 @@ DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
 class NetworkStep(Step):
     """Step to setup a nic"""
 
-    def __init__(self, nic_name, nic_mac, is_external, is_internal, nic_str=None):
-        Step.__init__(self, f"Configuring {nic_name} ({nic_mac})")
+    def __init__(
+        self,
+        nic_name: str,
+        nic_mac: str,
+        is_external: bool,
+        is_internal: bool,
+        nic_str: str | None = None,
+    ) -> None:
+        super().__init__(f"Configuring {nic_name} ({nic_mac})")
         assert is_external or is_internal
         self.nic_name = nic_name
         self.nic_mac = nic_mac
@@ -29,7 +38,7 @@ class NetworkStep(Step):
         self._is_internal = is_internal
         self._is_dual_nic = is_external != is_internal
 
-    def _start(self, _config):
+    def _start(self, _config: defaultdict) -> None:
         """Determines what kind of interface is going to be setup"""
         self.questions += [self._get_ip_address, self._get_netmask]
         if self._is_external:
@@ -42,7 +51,7 @@ class NetworkStep(Step):
             )
             self.questions.append(self._get_internal_routes)
 
-    def _get_ip_address(self, config):
+    def _get_ip_address(self, config: defaultdict) -> None:
         """Question to get ip address"""
         default_ip = utils.config_get(config["networks"][self.nic_name]["ipaddress"])
         response = self.ask(f"IP Address{self.nic_str}?", default=default_ip)
@@ -54,27 +63,30 @@ class NetworkStep(Step):
             self._store_netmask(config, netmask)
             self.questions.pop(0)  # Skip the netmask question as we already have it
         else:
-            ip_address = utils.validate_ip(response)
-            self._store_ipaddress(config, ip_address.exploded)
+            ip_address_obj = utils.validate_ip(response)
+            self._store_ipaddress(config, ip_address_obj.exploded)
 
-    def _store_ipaddress(self, config, ip_address):
+    def _store_ipaddress(self, config: defaultdict, ip_address: str) -> None:
         """Stores the ip address in the config"""
         config["networks"][self.nic_name]["ipaddress"] = ip_address
 
-    def _get_netmask(self, config):
+    def _get_netmask(self, config: defaultdict) -> None:
         """Question to get netmask"""
         default_netmask = utils.config_get(config["networks"][self.nic_name]["netmask"])
         response = self.ask(f"Subnet mask{self.nic_str}?", default=default_netmask)
         DEV_LOGGER.info("Response: %s", response)
         self._store_netmask(config, response)
 
-    def _store_netmask(self, config, netmask):
+    def _store_netmask(self, config: defaultdict, netmask: str) -> None:
         """Stores the netmask in the config"""
-        ip_address = utils.config_get(config["networks"][self.nic_name]["ipaddress"])
+        ip_address: str | None = utils.config_get(
+            config["networks"][self.nic_name]["ipaddress"]
+        )
+        assert isinstance(ip_address, str)
         interface = utils.validate_interface(ip_address, netmask)
         config["networks"][self.nic_name]["netmask"] = interface.netmask.exploded
 
-    def _get_gateway(self, config):
+    def _get_gateway(self, config: defaultdict) -> None:
         """Question to get gateway"""
         default_gateway = utils.config_get(config["networks"][self.nic_name]["gateway"])
         response = self.ask(f"Default gateway{self.nic_str}?", default=default_gateway)
@@ -82,7 +94,7 @@ class NetworkStep(Step):
         gateway = utils.validate_ip(response)
         config["networks"][self.nic_name]["gateway"] = gateway.exploded
 
-    def _get_internal_routes(self, config):
+    def _get_internal_routes(self, config: defaultdict) -> None:
         """Question to get internal routes"""
         self._routes.run(
             config,
@@ -91,9 +103,11 @@ class NetworkStep(Step):
             print_header=False,
         )
 
-    def _default_ipaddress(self, saved_config_nic, config):
+    def _default_ipaddress(
+        self, saved_config_nic: defaultdict, config: defaultdict
+    ) -> IPv4Address | None:
         """Find stored ip address"""
-        saved_ipaddress = utils.validated_config_value(
+        saved_ipaddress: IPv4Address | None = utils.validated_config_value(
             saved_config_nic, "ipaddress", utils.validate_ip
         )
         if saved_ipaddress is not None:
@@ -105,9 +119,11 @@ class NetworkStep(Step):
             DEV_LOGGER.info("No saved_ipaddress for %s", self.nic_name)
         return saved_ipaddress
 
-    def _default_netmask(self, saved_config_nic, config):
+    def _default_netmask(
+        self, saved_config_nic: defaultdict, config: defaultdict
+    ) -> IPv4Network | None:
         """Find stored netmask"""
-        saved_netmask = utils.validated_config_value(
+        saved_netmask: IPv4Network | None = utils.validated_config_value(
             saved_config_nic, "netmask", partial(utils.validate_network, "0.0.0.0")
         )
         if saved_netmask is not None:
@@ -119,9 +135,11 @@ class NetworkStep(Step):
             DEV_LOGGER.info("No saved_netmask for %s", self.nic_name)
         return saved_netmask
 
-    def _default_gateway(self, saved_config_nic, config):
+    def _default_gateway(
+        self, saved_config_nic: defaultdict, config: defaultdict
+    ) -> IPv4Address | None:
         """Find stored gateway"""
-        saved_gateway = utils.validated_config_value(
+        saved_gateway: IPv4Address | None = utils.validated_config_value(
             saved_config_nic, "gateway", utils.validate_ip
         )
         if saved_gateway is not None:
@@ -134,8 +152,8 @@ class NetworkStep(Step):
         return saved_gateway
 
     def _default_dhcp_ipaddress_netmask(
-        self, config, get_ipaddress=True, get_netmask=True
-    ):
+        self, config: defaultdict, get_ipaddress: bool = True, get_netmask: bool = True
+    ) -> None:
         """Try to guess ip/netmask from DHCP"""
         try:
             DEV_LOGGER.info(
@@ -177,7 +195,7 @@ class NetworkStep(Step):
                 "Error running shell command ip addr list dev %s", self.nic_name
             )
 
-    def _default_dhcp_gateway(self, config):
+    def _default_dhcp_gateway(self, config: defaultdict) -> None:
         """Try to guess gateway from DHCP"""
         try:
             DEV_LOGGER.info(
@@ -210,7 +228,7 @@ class NetworkStep(Step):
                 "Error running shell command ip route list dev %s", self.nic_name
             )
 
-    def default_config(self, saved_config, config):
+    def default_config(self, saved_config: defaultdict, config: defaultdict) -> None:
         saved_config_nic = saved_config["networks"][self.nic_name]
         saved_ipaddress = self._default_ipaddress(saved_config_nic, config)
         saved_netmask = self._default_netmask(saved_config_nic, config)

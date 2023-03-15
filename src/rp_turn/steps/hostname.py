@@ -3,6 +3,7 @@ Pexip installation wizard step to setup hostname and domain
 """
 
 import logging
+from collections import defaultdict
 
 from rp_turn import utils
 from rp_turn.steps.base_step import Step, StepError
@@ -13,11 +14,11 @@ DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
 class HostnameStep(Step):
     """Step to get hostname and domain name"""
 
-    def __init__(self):
-        Step.__init__(self, "Hostname and Domain")
+    def __init__(self) -> None:
+        super().__init__("Hostname and Domain")
         self.questions = [self._get_hostname, self._get_domain]
 
-    def _get_hostname(self, config):
+    def _get_hostname(self, config: defaultdict) -> None:
         """Question to get the hostname"""
         default_hostname = utils.config_get(config["hostname"])
         response = self.ask("Hostname?", default=default_hostname)
@@ -25,7 +26,7 @@ class HostnameStep(Step):
         hostname = utils.validate_hostname(response)
         config["hostname"] = hostname
 
-    def _get_domain(self, config):
+    def _get_domain(self, config: defaultdict) -> None:
         """Question to get the domain"""
         default_domain = utils.config_get(config["domain"])
         response = self.ask("Domain?", default=default_domain)
@@ -34,7 +35,7 @@ class HostnameStep(Step):
         config["domain"] = domain
 
     @staticmethod
-    def _dhcp_domain():
+    def _dhcp_domain() -> str | None:
         """Uses DHCP to find the default domain"""
         # Attempt to find out domain supplied by DHCP
         for filename in ("/run/systemd/resolve/resolv.conf", "/etc/resolv.conf"):
@@ -65,7 +66,7 @@ class HostnameStep(Step):
         DEV_LOGGER.info("Failed to guess domain from DHCP. No domain to suggest")
         return None
 
-    def default_config(self, saved_config, config):
+    def default_config(self, saved_config: defaultdict, config: defaultdict) -> None:
         DEV_LOGGER.info("Getting from saved_config: hostname")
         config["hostname"] = utils.validated_config_value(
             saved_config, "hostname", utils.validate_hostname

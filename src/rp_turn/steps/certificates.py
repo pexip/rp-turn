@@ -2,6 +2,7 @@
 Pexip installation wizard step to generate certificates
 """
 import logging
+from collections import defaultdict
 from functools import partial
 
 from rp_turn import utils
@@ -13,11 +14,11 @@ DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
 class CertificatesStep(Step):
     """Generate New Certificates Step"""
 
-    def __init__(self):
-        Step.__init__(self, "Certificates")
+    def __init__(self) -> None:
+        super().__init__("Certificates")
         self.questions = [self._generate_ssl, self._generate_ssh]
 
-    def _generate_ssl(self, config):
+    def _generate_ssl(self, config: defaultdict) -> None:
         """Question asking whether to regenerate ssl certificates"""
         response = self.ask_yes_no(
             "An existing SSL certificate exists.\n"
@@ -27,7 +28,7 @@ class CertificatesStep(Step):
         DEV_LOGGER.info("Response: %s", response)
         config["generate-certs"]["ssl"] = response
 
-    def _generate_ssh(self, config):
+    def _generate_ssh(self, config: defaultdict) -> None:
         """Question asking whether to regenerate ssh certificates"""
         response = self.ask_yes_no(
             "An existing SSH certificate exists.\n"
@@ -37,7 +38,7 @@ class CertificatesStep(Step):
         DEV_LOGGER.info("Response: %s", response)
         config["generate-certs"]["ssh"] = response
 
-    def default_config(self, saved_config, config):
+    def default_config(self, saved_config: defaultdict, config: defaultdict) -> None:
         saved_certs = saved_config["generate-certs"]
         config_certs = config["generate-certs"]
         DEV_LOGGER.info("Getting from saved_config: generate-certs.ssl")

@@ -12,29 +12,31 @@ import time
 class FileWriter:
     """Generic file writer"""
 
-    def __init__(self, path):
-        """Create generic file writer.
+    def __init__(self, path: str):
+        """
+        Create generic file writer.
 
-        Args:
-            - path (str): Absolute path of file to write
+        :param path: Absolute path of file to write
         """
         self._path = path
 
-    def write(self, contents: str, mode=0o644, backup=True, suffix="", sync=True):
-        """Write data to a file.
+    def write(
+        self,
+        contents: str,
+        mode: int = 0o644,
+        backup: bool = True,
+        suffix: str = "",
+        sync: bool = True,
+    ) -> None:
+        """
+        Write data to a file.
 
-        Args:
-            - contents (str) : File contents
-            - mode     (int) : File access mode
-            - backup   (bool): Whether to back up existing file
-            - suffix   (str):  Suffix to use for the temporary file
-            - sync     (bool): Whether to issue fsync call(s) for extra data safety
-
-        Defaults:
-            - mode  : Defaults to a mode of 0644 (rw-r--r--)
-            - backup: Defaults to True
-            - suffix: Defaults to '' (i.e. no suffix)
-            - sync  : Defaults to True
+        :param contents: File contents
+        :param mode: File access mode
+        :param backup: Whether to back up existing file
+        :param suffix: Suffix to use for the temporary file
+        :param sync:  Whether to issue fsync call(s) for extra data safety
+        :return: None
         """
         # Write contents to a temporary file *in the same directory*, so
         # that the rename can be atomic.
@@ -79,15 +81,14 @@ class FileWriter:
 class HeadedFileWriter(FileWriter):
     """File writer for headed files."""
 
-    def __init__(self, path):
-        """Create headed file writer.
-
-        Args:
-            - path (str): Absolute path of file to write
-        """
-        FileWriter.__init__(self, path)
-
-    def write(self, contents: str, mode=0o644, backup=True, suffix="", sync=True):
+    def write(
+        self,
+        contents: str,
+        mode: int = 0o644,
+        backup: bool = True,
+        suffix: str = "",
+        sync: bool = True,
+    ) -> None:
         """Write data to a file, prepending a common header.
 
         Args:

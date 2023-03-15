@@ -86,7 +86,7 @@ class TestGetNicName1Nic(tests.QuestionUtils):
     """Tests the _get_nic_name Question in DualNicStep with 1 NIC attached"""
 
     def __init__(self, obj):
-        tests.QuestionUtils.__init__(self, obj)
+        super().__init__(obj)
         self._nic_names = ["nic0"]
         self._nic_macs = ["00:00:00:00:00"]
         self._nics = list(zip(self._nic_names, self._nic_macs))
@@ -154,7 +154,7 @@ class TestGetNicName2Nics(TestGetNicName1Nic):
     """Tests the _get_nic_name Question in DualNicStep with 2 NICs attached"""
 
     def __init__(self, obj):
-        TestGetNicName1Nic.__init__(self, obj)
+        super().__init__(obj)
         self._nic_names.append("nic1")
         self._nic_macs.append("11:11:11:11:11")
         self._nics = list(zip(self._nic_names, self._nic_macs))
@@ -200,7 +200,7 @@ class TestGetNicName3Nics(TestGetNicName2Nics):
     """Tests the _get_nic_name Question in DualNicStep with 3 NICs attached"""
 
     def __init__(self, obj):
-        TestGetNicName2Nics.__init__(self, obj)
+        super().__init__(obj)
         self._nic_names.append("nic3")
         self._nic_macs.append("22:22:22:22:22")
         self._nics = list(zip(self._nic_names, self._nic_macs))

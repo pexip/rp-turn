@@ -6,7 +6,9 @@ from __future__ import print_function
 import logging
 import os
 import subprocess
+from collections import defaultdict
 from ipaddress import IPv4Interface
+from typing import Any
 
 import jinja2
 import yaml
@@ -21,7 +23,7 @@ class ConfigApplicator:
     Configuration applicator.
     """
 
-    def __init__(self, config):
+    def __init__(self, config: defaultdict) -> None:
         self._config = config
         # Setup jinja to load templates
         template_loader = jinja2.FileSystemLoader(
@@ -29,13 +31,13 @@ class ConfigApplicator:
         )
         self._template_env = jinja2.Environment(loader=template_loader)
 
-    def fqdn(self):
+    def fqdn(self) -> str:
         """
         Returns the fully qualified domain name
         """
-        return self._config["hostname"] + "." + self._config["domain"]
+        return f"{self._config['hostname']}.{self._config['domain']}"
 
-    def apply(self):
+    def apply(self) -> None:
         """
         Apply collected configuration to system.
         """
@@ -49,13 +51,15 @@ class ConfigApplicator:
         self._apply_fail2ban()
         self._apply_snmp()
 
-    def _apply_base_network_config(self):
+    def _apply_base_network_config(self) -> None:
         """
         Set base network config (ip, mask, gw), (hostname)
         """
         DEV_LOGGER.info("Applying netplan")
         # Write interfaces file
-        netplan = {"network": {"version": 2, "renderer": "networkd", "ethernets": {}}}
+        netplan: dict = {
+            "network": {"version": 2, "renderer": "networkd", "ethernets": {}}
+        }
         enabled_nics = {self._config["internal"], self._config["external"]}
         for nic in enabled_nics:
             network = self._config["networks"][nic]
@@ -82,12 +86,13 @@ class ConfigApplicator:
         DEV_LOGGER.info("Netplan dict: %s", netplan)
 
         # Disables &id001 aliases in the yaml output
-        noalias_dumper = yaml.dumper.SafeDumper
-        noalias_dumper.ignore_aliases = lambda self, data: True
+        class NoAliasDumper(yaml.SafeDumper):
+            """Yaml SafeDumper with &id001 aliases disabled"""
 
-        netcfg_yaml = yaml.dump(
-            netplan, default_flow_style=False, Dumper=noalias_dumper
-        )
+            def ignore_aliases(self, data: Any) -> bool:
+                return True
+
+        netcfg_yaml = yaml.dump(netplan, default_flow_style=False, Dumper=NoAliasDumper)
         netplan_filepath = "/etc/netplan/01-netcfg.yaml"
         filewriter.HeadedFileWriter(netplan_filepath).write(netcfg_yaml)
         DEV_LOGGER.info("Writing to %s: %s", netplan_filepath, netcfg_yaml)
@@ -106,7 +111,7 @@ class ConfigApplicator:
         filewriter.HeadedFileWriter(hosts_filepath).write(hosts)
         DEV_LOGGER.info("Writing to %s: %s", hosts_filepath, hosts)
 
-    def _apply_ntp_server_config(self):
+    def _apply_ntp_server_config(self) -> None:
         """
         Set NTP server configuration.
         """
@@ -118,7 +123,7 @@ class ConfigApplicator:
         filewriter.HeadedFileWriter(ntp_filepath).write(ntp_config)
         DEV_LOGGER.info("Writing to %s: %s", ntp_filepath, ntp_config)
 
-    def _apply_nginx_server_config(self):
+    def _apply_nginx_server_config(self) -> None:
         """
         Write /etc/nginx/sites-available/pexapp
         """
@@ -150,7 +155,7 @@ class ConfigApplicator:
         else:
             utils.run_shell("/bin/systemctl disable nginx")
 
-    def _apply_iptables_config(self):
+    def _apply_iptables_config(self) -> None:
         """
         Write /home/pexip/iptables.rules
         """
@@ -196,7 +201,7 @@ class ConfigApplicator:
             # Disable SSH
             utils.run_shell("/bin/systemctl disable ssh.service")
 
-    def _apply_certificate_config(self):
+    def _apply_certificate_config(self) -> None:
         """
         Create self-signed certificate and store as /etc/nginx/ssl/pexip.pem
         Should be readable only by root and www-data
@@ -225,7 +230,7 @@ class ConfigApplicator:
         else:
             DEV_LOGGER.info("Skipped generating SSH")
 
-    def _apply_turn_config(self):
+    def _apply_turn_config(self) -> None:
         """
         Write turnserver config files.
         """
@@ -321,7 +326,7 @@ class ConfigApplicator:
             utils.run_shell("/bin/systemctl disable coturn")
             DEV_LOGGER.info("Disabled turnserver")
 
-    def _apply_fail2ban(self):
+    def _apply_fail2ban(self) -> None:
         """
         Enables/disables fail2ban
         """
@@ -330,7 +335,7 @@ class ConfigApplicator:
         else:
             utils.run_shell("/bin/systemctl disable fail2ban.service")
 
-    def _apply_snmp(self):
+    def _apply_snmp(self) -> None:
         """
         Write SNMPv2c read only config files.
         """

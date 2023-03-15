@@ -3,6 +3,7 @@ Pexip installation wizard step to setup dns servers
 """
 
 import logging
+from collections import defaultdict
 
 from rp_turn import utils
 from rp_turn.steps.base_step import MultiStep, StepError
@@ -13,15 +14,15 @@ DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
 class DNSStep(MultiStep):
     """Step to get dns servers"""
 
-    def __init__(self):
-        MultiStep.__init__(self, "DNS Servers", "dns")
+    def __init__(self) -> None:
+        super().__init__("DNS Servers", "dns")
 
-    def validate(self, response):
+    def validate(self, response: str) -> str:
         DEV_LOGGER.info("Response: %s", response)
         return utils.validate_ip(response).exploded
 
     @staticmethod
-    def _dhcp_dns():
+    def _dhcp_dns() -> list[str]:
         """
         Gets the dns servers suggested by DHCP
         :return: nameservers suggested by DHCP or googles DNS servers if no other DNS servers could be found
@@ -63,7 +64,7 @@ class DNSStep(MultiStep):
         )
         return ["8.8.8.8", "8.8.4.4"]
 
-    def default_config(self, saved_config, config):
+    def default_config(self, saved_config: defaultdict, config: defaultdict) -> None:
         # Attempt to find out nameservers supplied by DHCP
         dhcp_dns = self._dhcp_dns()
         DEV_LOGGER.info("Getting from saved_config: dns")

@@ -7,6 +7,7 @@ import os
 import re
 import subprocess
 from collections import defaultdict
+from functools import partial
 from ipaddress import (
     AddressValueError,
     IPv4Address,
@@ -14,6 +15,7 @@ from ipaddress import (
     IPv4Network,
     NetmaskValueError,
 )
+from typing import Any, Callable, TypeVar
 
 from rp_turn.step_error import StepError
 
@@ -24,13 +26,15 @@ VALID_HOSTNAME_RE = re.compile(
 )
 VALID_NUMBER_RE = re.compile(r"^([0-9]+)\Z")
 
+_T = TypeVar("_T")
 
-def nested_dict():
+
+def nested_dict() -> defaultdict:
     """Allows accessing non existent key elements from a dictionary by adding empty dicts on the fly"""
     return defaultdict(nested_dict)
 
 
-def make_nested_dict(val):
+def make_nested_dict(val: Any) -> Any:
     """Converts a standard dict into a nested_dict"""
     if isinstance(val, dict):
         new_dict = nested_dict()
@@ -42,7 +46,7 @@ def make_nested_dict(val):
     return val
 
 
-def config_get(val):
+def config_get(val: _T) -> _T | None:
     """
     Replaces an empty dict with None when accessing a value from the config
     """
@@ -51,7 +55,7 @@ def config_get(val):
     return val
 
 
-def get_config_value_by_path(config, path):
+def get_config_value_by_path(config: defaultdict, path: str | list[str]) -> Any:
     """Follows the path in the config and returns its value"""
     config_value = config
     if isinstance(path, list):
@@ -62,7 +66,9 @@ def get_config_value_by_path(config, path):
     return config_get(config_value)
 
 
-def set_config_value_by_path(config, path, value):
+def set_config_value_by_path(
+    config: defaultdict, path: str | list[str], value: Any
+) -> None:
     """Follows the path in the config and sets its value"""
     config_value = config
     if isinstance(path, list):
@@ -74,8 +80,13 @@ def set_config_value_by_path(config, path, value):
 
 
 def validated_config_value(
-    saved_config, key, validation, value_list=False, fallback=None, log_values=True
-):
+    saved_config: defaultdict[str, _T],
+    key: str,
+    validation: Callable[[Any], Any] | partial[_T],
+    value_list: bool = False,
+    fallback: _T | None = None,
+    log_values: bool = True,
+) -> _T | None:
     """
     Follows key to a value, and validates if it is correct
     Returns None on an invalid/missing value
@@ -117,23 +128,23 @@ def validated_config_value(
     return fallback
 
 
-def validate_type(val_type, val):
+def validate_type(val_type: type, val: object) -> object:
     """Validates that a value is of type"""
     if isinstance(val, val_type):
         return val
     raise StepError(f"{val} is not of type {val_type} (Has type: {type(val)})")
 
 
-def validate_interface_name(config, interface):
+def validate_interface_name(config: defaultdict, interface: str) -> str:
     """Validates that a value is an interface name"""
-    if type(interface) not in [str, bytes]:
+    if not isinstance(interface, str):
         raise StepError("Interface is not a string")
     if interface.strip() in config["networks"]:
         return interface.strip()
     raise StepError(f"Cannot find {interface} interface")
 
 
-def validate_ip(address):
+def validate_ip(address: str) -> IPv4Address:
     """Validate that something looks like an IPv4 address."""
     try:
         return IPv4Address(str(address.strip()))
@@ -142,14 +153,14 @@ def validate_ip(address):
         raise StepError("Does not look like an IPv4 Address") from exc
 
 
-def validate_network(address, netmask):
+def validate_network(address: str, netmask: str) -> IPv4Network:
     """
     Validate that something looks like a valid address/netmask and returns as cidr
     """
     return validate_cidr_network(address.strip() + "/" + netmask.strip())
 
 
-def validate_cidr_network(cidr):
+def validate_cidr_network(cidr: str) -> IPv4Network:
     """
     Validate that something looks like a valid network as cidr
     """
@@ -161,7 +172,7 @@ def validate_cidr_network(cidr):
         raise StepError("Does not look like an IPv4 Netmask") from exc
 
 
-def validate_cidr_network_string(cidr):
+def validate_cidr_network_string(cidr: str) -> tuple[str, str]:
     """
     Validate that something looks like a valid network as cidr
     :param cidr:
@@ -177,7 +188,7 @@ def validate_cidr_network_string(cidr):
         raise StepError("Does not look like an IPv4 Network") from exc
 
 
-def validate_interface(address, netmask):
+def validate_interface(address: str, netmask: str) -> IPv4Interface:
     """
     Validate that something looks like a valid network interface address/netmask and returns as cidr
     """
@@ -188,7 +199,7 @@ def validate_interface(address, netmask):
         raise StepError("Does not look like an IPv4 Interface") from exc
 
 
-def validate_cidr_interface_string(cidr):
+def validate_cidr_interface_string(cidr: str) -> tuple[str, str]:
     """
     Validate that something looks like a valid network as cidr
     :param cidr:
@@ -204,11 +215,11 @@ def validate_cidr_interface_string(cidr):
         raise StepError("Does not look like an IPv4 Interface") from exc
 
 
-def validate_domain(domain):
+def validate_domain(domain: str) -> str:
     """
     Validate that something looks like a domain name.
     """
-    if type(domain) not in [str, bytes]:
+    if not isinstance(domain, str):
         raise StepError("Domain is not a string")
     domain = domain.strip()
     parts = domain.split(".")
@@ -230,11 +241,11 @@ def validate_domain(domain):
     return domain
 
 
-def validate_hostname(hostname):
+def validate_hostname(hostname: str) -> str:
     """
     Validate that something looks like a hostname.
     """
-    if type(hostname) not in [str, bytes]:
+    if not isinstance(hostname, str):
         raise StepError("Hostname is not a string")
     hostname = hostname.strip()
     if not VALID_HOSTNAME_RE.match(hostname):
@@ -243,7 +254,7 @@ def validate_hostname(hostname):
     return hostname
 
 
-def run_shell(argl, *argv):
+def run_shell(argl: str, *argv: str) -> None:
     """Runs a list of shell commands"""
     with open(os.devnull, "wb") as fnull:
         for cmd in [argl] + list(argv):

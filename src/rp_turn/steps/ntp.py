@@ -3,6 +3,8 @@ Pexip installation wizard step to setup ntp servers
 """
 
 import logging
+from collections import defaultdict
+from ipaddress import IPv4Address
 
 from rp_turn import utils
 from rp_turn.steps.base_step import MultiStep, StepError
@@ -13,10 +15,10 @@ DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
 class NTPStep(MultiStep):
     """Step to get NTP servers"""
 
-    def __init__(self):
-        MultiStep.__init__(self, "NTP Servers", "ntp")
+    def __init__(self) -> None:
+        super().__init__("NTP Servers", "ntp")
 
-    def validate(self, response):
+    def validate(self, response: str) -> str | IPv4Address:
         DEV_LOGGER.info("Response: %s", response)
         try:
             return utils.validate_domain(response)
@@ -28,7 +30,7 @@ class NTPStep(MultiStep):
             DEV_LOGGER.info("%s is not an ip address", response)
         raise StepError("Was not an ip address or domain name")
 
-    def default_config(self, saved_config, config):
+    def default_config(self, saved_config: defaultdict, config: defaultdict) -> None:
         DEV_LOGGER.info("Getting from saved_config: ntp")
         fallback = [
             "0.pexip.pool.ntp.org",

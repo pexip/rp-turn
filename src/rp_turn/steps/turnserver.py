@@ -5,7 +5,9 @@ Pexip installation wizard step to setup the turnserver
 import base64
 import logging
 import os
+from collections import defaultdict
 from functools import partial
+from ipaddress import IPv4Address
 
 from passlib.utils import saslprep
 
@@ -18,7 +20,7 @@ DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
 class TCPTurnStep(Step):
     """TURN Step for tcp_turn_intro and get_tcp_turn"""
 
-    def _intro_tcp_turn(self, _config):
+    def _intro_tcp_turn(self, _config: defaultdict) -> None:
         """Displays an intro message describing what TURN on 443 can do"""
         self.display(
             """\
@@ -28,13 +30,12 @@ behind strict firewalls to make calls.
 The TURN server listens on port 3478 by default"""
         )
 
-    def _get_tcp_turn(self, config):
+    def _get_tcp_turn(self, config: defaultdict) -> None:
         """Question asking user whether to use listen on 443 instead"""
-        port_443 = utils.config_get(config["turnserver"]["port443"])
-        default_response = "Yes" if port_443 else "No"
+        port_443: bool | None = utils.config_get(config["turnserver"]["port443"])
         response = self.ask_yes_no(
             "Do you want the TURN server to listen on port 443 instead of port 3478?",
-            default=default_response,
+            default=port_443,
         )
         config["turnserver"]["port443"] = response
 
@@ -42,13 +43,13 @@ The TURN server listens on port 3478 by default"""
 class TurnServerStep(TCPTurnStep):
     """Step to configure turn server"""
 
-    def __init__(self):
-        TCPTurnStep.__init__(self, "TURN Server")
+    def __init__(self) -> None:
+        super().__init__("TURN Server")
         self.questions = [self._intro, self._enable_turn]
         self._media_addresses_step = MediaConferenceNodeStep()
         self._client_turn_step = ClientTurnServerStep()
 
-    def _intro(self, _config):
+    def _intro(self, _config: defaultdict) -> None:
         """Displays an intro message describing what the TURN server does"""
         self.display(
             """\
@@ -61,22 +62,24 @@ externally (e.g. in a DMZ) as it allows relaying of traffic to any IP address.
 """
         )
 
-    def _enable_turn(self, config):
+    def _enable_turn(self, config: defaultdict) -> None:
         """Question asking user whether to enable turnserver or not"""
         web_enabled = config["enablewebloadbalance"]
         response = True  # Turnserver is enabled if web_enabled is False
         if web_enabled:
-            default_enabled = utils.config_get(config["turnserver"]["enabled"])
-            default_enabled = "Yes" if default_enabled else "No"
+            default_enabled: bool | None = utils.config_get(
+                config["turnserver"]["enabled"]
+            )
             response = self.ask_yes_no("Enable TURN server?", default=default_enabled)
             config["turnserver"]["enabled"] = response
 
         if response:
-            clientturn = utils.config_get(config["turnserver"]["clientturn"])
-            default_response = "No" if clientturn else "Yes"
+            clientturn: bool | None = utils.config_get(
+                config["turnserver"]["clientturn"]
+            )
             response = self.ask_yes_no(
                 "Do you want to configure TURN using the restricted configuration mode?",
-                default=default_response,
+                default=not clientturn,
             )
             if response is False:
                 config["turnserver"]["clientturn"] = True
@@ -95,7 +98,7 @@ externally (e.g. in a DMZ) as it allows relaying of traffic to any IP address.
                 self._get_media_addresses,
             ]
 
-    def _get_turn_username(self, config):
+    def _get_turn_username(self, config: defaultdict) -> None:
         """Question to get the turnserver username"""
         default_username = utils.config_get(config["turnserver"]["username"])
         response = self.ask("TURN username?", default=default_username)
@@ -108,7 +111,7 @@ externally (e.g. in a DMZ) as it allows relaying of traffic to any IP address.
             raise StepError("Username contains an invalid character") from exc
         config["turnserver"]["username"] = response
 
-    def _get_turn_password(self, config):
+    def _get_turn_password(self, config: defaultdict) -> None:
         """Question to get the turnserver password"""
         response = self.ask("TURN password (will be displayed onscreen)?")
         DEV_LOGGER.info("Got a response for password prompt")
@@ -120,7 +123,7 @@ externally (e.g. in a DMZ) as it allows relaying of traffic to any IP address.
             raise StepError("Password contains an invalid character") from exc
         config["turnserver"]["password"] = response
 
-    def _get_media_addresses(self, config):
+    def _get_media_addresses(self, config: defaultdict) -> None:
         """Question to get the addresses to relay to"""
         self._media_addresses_step.run(
             config,
@@ -129,7 +132,7 @@ externally (e.g. in a DMZ) as it allows relaying of traffic to any IP address.
             print_header=False,
         )
 
-    def _run_client_turn_step(self, config):
+    def _run_client_turn_step(self, config: defaultdict) -> None:
         """Run the client TURN step to step a client TURN server"""
         self._client_turn_step.run(
             config,
@@ -138,7 +141,7 @@ externally (e.g. in a DMZ) as it allows relaying of traffic to any IP address.
             print_header=False,
         )
 
-    def default_config(self, saved_config, config):
+    def default_config(self, saved_config: defaultdict, config: defaultdict) -> None:
         saved_turn_config = saved_config["turnserver"]
         turn_config = config["turnserver"]
 
@@ -203,19 +206,19 @@ externally (e.g. in a DMZ) as it allows relaying of traffic to any IP address.
 class MediaConferenceNodeStep(MultiStep):
     """Step to set the conference node ip addresses"""
 
-    def __init__(self):
-        MultiStep.__init__(self, "IP Address of Media Conferencing Nodes", "medianodes")
+    def __init__(self) -> None:
+        super().__init__("IP Address of Media Conferencing Nodes", "medianodes")
 
-    def _use_default(self, config):
+    def _use_default(self, config: defaultdict) -> None:
         if not config["medianodes"]:
             config["medianodes"] = config["conferencenodes"]
-        MultiStep._use_default(self, config)
+        super()._use_default(config)
 
-    def validate(self, response):
+    def validate(self, response: str) -> IPv4Address:
         DEV_LOGGER.info("Response: %s", response)
         return utils.validate_ip(response)
 
-    def default_config(self, saved_config, config):
+    def default_config(self, saved_config: defaultdict, config: defaultdict) -> None:
         DEV_LOGGER.info("Getting from saved_config: medianodes")
         config["medianodes"] = utils.validated_config_value(
             saved_config, "medianodes", self.validate, value_list=True
@@ -225,8 +228,8 @@ class MediaConferenceNodeStep(MultiStep):
 class ClientTurnServerStep(TCPTurnStep):
     """Step for asking questions to set up a Client TURN Server"""
 
-    def __init__(self):
-        TCPTurnStep.__init__(self, "Client TURN Server")
+    def __init__(self) -> None:
+        super().__init__("Client TURN Server")
         self.questions = [
             self._intro,
             self._intro_tcp_turn,
@@ -234,7 +237,7 @@ class ClientTurnServerStep(TCPTurnStep):
             self._get_turn_shared_secret,
         ]
 
-    def _intro(self, _config):
+    def _intro(self, _config: defaultdict) -> None:
         """Intro to Client Turn Server"""
         self.display(
             """\
@@ -244,7 +247,7 @@ will be allowed to connect. A TURN secret key must also be used for authenticati
             """
         )
 
-    def _get_turn_shared_secret(self, config):
+    def _get_turn_shared_secret(self, config: defaultdict) -> None:
         """Question to get or generate the turnsever secret key"""
         response = self.ask(
             "TURN secret key: If left blank a key will be generated (will be displayed onscreen)?"
@@ -260,7 +263,7 @@ will be allowed to connect. A TURN secret key must also be used for authenticati
             raise StepError("Shared secret contains an invalid character") from exc
         config["turnserver"]["sharedsecret"] = response
 
-    def default_config(self, saved_config, config):
+    def default_config(self, saved_config: defaultdict, config: defaultdict) -> None:
         saved_turn_config = saved_config["turnserver"]
         turn_config = config["turnserver"]
 

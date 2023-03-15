@@ -2,13 +2,20 @@
 Pexip installation wizard step to setup the turnserver
 """
 
+from __future__ import annotations
+
 import copy
 import logging
+from collections import defaultdict
 from functools import partial
+from typing import TYPE_CHECKING
 
 from rp_turn import utils
 from rp_turn.steps.base_step import Step, StepError
 from rp_turn.steps.network import NetworkStep
+
+if TYPE_CHECKING:
+    from rp_turn.installwizard import InstallWizard
 
 DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
 
@@ -16,8 +23,10 @@ DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
 class DualNicStep(Step):
     """Step to decide which nics to use"""
 
-    def __init__(self, install_wizard, nics):
-        Step.__init__(self, "NIC Configuration")
+    def __init__(
+        self, install_wizard: InstallWizard, nics: list[tuple[str, str]]
+    ) -> None:
+        super().__init__("NIC Configuration")
         self.questions = [self._intro_dual_nic, self._enable_dual_nic]
         self._install_wizard = install_wizard
         self._nics = nics
@@ -25,14 +34,14 @@ class DualNicStep(Step):
         self._valid_nic_names = copy.deepcopy(self._all_nic_names)
         DEV_LOGGER.info("_all_nic_names = %s", self._all_nic_names)
 
-    def _intro_dual_nic(self, _):
+    def _intro_dual_nic(self, _config: defaultdict) -> None:
         """Shows list of connected nics"""
         msg = "More than one network interface has been detected:"
         for value in [nic_name + f" ({nic_mac})" for nic_name, nic_mac in self._nics]:
             msg += "\n  - " + value
         self.display(msg)
 
-    def _enable_dual_nic(self, config):
+    def _enable_dual_nic(self, config: defaultdict) -> None:
         """Asks whether to enable dual nic mode"""
         if config["internal"] != "" and config["external"] != "":
             default_enabled = config["internal"] != config["external"]
@@ -53,7 +62,9 @@ class DualNicStep(Step):
                 self._save_nic_settings,
             ]
 
-    def _get_nic_name(self, config, internal=False, external=False):
+    def _get_nic_name(
+        self, config: defaultdict, internal: bool = False, external: bool = False
+    ) -> None:
         """Chooses which nic to use"""
         DEV_LOGGER.info(
             "Getting nic name for internal=%s, external=%s", internal, external
@@ -105,10 +116,10 @@ class DualNicStep(Step):
             config["external"] = chosen_nic_name
             DEV_LOGGER.info("Set external interface to: %s", chosen_nic_name)
 
-    def _save_nic_settings(self, config):
+    def _save_nic_settings(self, config: defaultdict) -> None:
         """Saves the nic settings and adds network steps for chosen nics"""
 
-        def get_mac(chosen_nic_name):
+        def get_mac(chosen_nic_name: str) -> str:
             """Gets mac for chosen_nic_name"""
             return [
                 nic_mac
@@ -161,7 +172,7 @@ class DualNicStep(Step):
                 "Added NetworkStep for interface: %s (%s)", internal, nic_mac
             )
 
-    def default_config(self, saved_config, config):
+    def default_config(self, saved_config: defaultdict, config: defaultdict) -> None:
         internal = utils.validated_config_value(
             saved_config, "internal", partial(utils.validate_type, str)
         )

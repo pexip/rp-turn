@@ -2,6 +2,7 @@
 Pexip installation wizard step to configure SNMPv2c read only
 """
 import logging
+from collections import defaultdict
 from functools import partial
 
 from rp_turn import utils
@@ -13,11 +14,11 @@ DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
 class SNMPStep(Step):
     """Step for SNMPv2c read only"""
 
-    def __init__(self):
-        Step.__init__(self, "SNMPv2c read only")
+    def __init__(self) -> None:
+        super().__init__("SNMPv2c read only")
         self.questions = [self._enable_snmp]
 
-    def _enable_snmp(self, config):
+    def _enable_snmp(self, config: defaultdict) -> None:
         """Question asking whether to enable SNMPv2c read only"""
         default_enabled = utils.config_get(config["snmp"]["enabled"])
         response = self.ask_yes_no("Enable SNMPv2c read only?", default=default_enabled)
@@ -33,14 +34,14 @@ class SNMPStep(Step):
             ]
 
     @staticmethod
-    def _validate_community(value):
+    def _validate_community(value: str) -> str:
         """Validates the community field"""
         value = str(value).strip()
         if len(value) > 16:
             raise StepError("SNMP community is too long")
         return value
 
-    def _get_community(self, config):
+    def _get_community(self, config: defaultdict) -> None:
         """Question asking what community to use"""
         default_community = utils.config_get(config["snmp"]["community"])
         response = self.ask("SNMP community?", default=default_community)
@@ -48,14 +49,14 @@ class SNMPStep(Step):
         config["snmp"]["community"] = self._validate_community(response)
 
     @staticmethod
-    def _validate_location(value):
+    def _validate_location(value: str) -> str:
         """Validates the location field"""
         value = str(value).strip()
         if len(value) > 70:
             raise StepError("SNMP location is too long")
         return value
 
-    def _get_location(self, config):
+    def _get_location(self, config: defaultdict) -> None:
         """Question asking what location to use"""
         default_location = utils.config_get(config["snmp"]["location"])
         response = self.ask("SNMP system location?", default=default_location)
@@ -63,14 +64,14 @@ class SNMPStep(Step):
         config["snmp"]["location"] = self._validate_location(response)
 
     @staticmethod
-    def _validate_contact(value):
+    def _validate_contact(value: str) -> str:
         """Validates the contact field"""
         value = str(value).strip()
         if len(value) > 70:
             raise StepError("SNMP contact is too long")
         return value
 
-    def _get_contact(self, config):
+    def _get_contact(self, config: defaultdict) -> None:
         """Question asking what contact email to use"""
         default_contact = utils.config_get(config["snmp"]["contact"])
         response = self.ask("SNMP system contact?", default=default_contact)
@@ -78,14 +79,14 @@ class SNMPStep(Step):
         config["snmp"]["contact"] = self._validate_contact(response)
 
     @staticmethod
-    def _validate_name(value):
+    def _validate_name(value: str) -> str:
         """Validates the name field"""
         value = str(value).strip()
         if len(value) > 70:
             raise StepError("SNMP name is too long")
         return value
 
-    def _get_name(self, config):
+    def _get_name(self, config: defaultdict) -> None:
         """Question asking what name to use"""
         default_name = utils.config_get(config["snmp"]["name"])
         response = self.ask("SNMP system name?", default=default_name)
@@ -93,21 +94,21 @@ class SNMPStep(Step):
         config["snmp"]["name"] = self._validate_name(response)
 
     @staticmethod
-    def _validate_description(value):
+    def _validate_description(value: str) -> str:
         """Validates the description field"""
         value = str(value).strip()
         if len(value) > 70:
             raise StepError("SNMP description is too long")
         return value
 
-    def _get_description(self, config):
+    def _get_description(self, config: defaultdict) -> None:
         """Question asking what description to use"""
         default_description = utils.config_get(config["snmp"]["description"])
         response = self.ask("SNMP system description?", default=default_description)
         DEV_LOGGER.info("Response: %s", response)
         config["snmp"]["description"] = self._validate_description(response)
 
-    def default_config(self, saved_config, config):
+    def default_config(self, saved_config: defaultdict, config: defaultdict) -> None:
         saved_snmp_config = saved_config["snmp"]
         snmp_config = config["snmp"]
         # enabled
