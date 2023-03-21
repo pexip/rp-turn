@@ -1,49 +1,34 @@
 ---
-- hosts: '{{ target }}'
+- hosts: localhost
   vars:
     rp_source: "vm/reverseproxy/src"
-    si_dest: "/opt/pexip/lib/python3.6/site-packages/si"
+    si_dest: "/opt/pexip/lib/python3.10/site-packages/si"
     dest_dir: "/home/pexip/rp_server"
   remote_user: pexip
   become: yes
   become_user: pexip
   tasks:
-    - name: "Disable keeping older kernels (1/2)"
-      become: yes
-      become_user: root
-      command: mv /etc/kernel/postinst.d/apt-auto-removal /tmp
-    - name: "Disable keeping older kernels (2/2)"
-      become: yes
-      become_user: root
-      file: path={{item}} state=absent
-      with_items:
-        - '/etc/apt/apt.conf.d/01autoremove'
-        - '/etc/apt/apt.conf.d/01autoremove-kernels'
-
-    - apt:  upgrade=dist update_cache=yes dpkg_options='force-confold,force-confdef' cache_valid_time=3600
-      become: yes
-      become_user: root
     - name: "Install required apt packages"
       become: yes
       become_user: root
-      action: >
-        {{ ansible_pkg_mgr }} name={{ item }} state=present
-      with_items:
-        - zile
-        - gdebi-core
-        - iptables-persistent
-        - fail2ban
-        - munin
-        - munin-node
-        - ntp
-        - open-vm-tools
-        - coturn
-        - net-tools
-        - python3-jinja2
-        - python3-pip
-        - snmp
-        - snmpd
-        - libpam-pwquality
+      apt:
+        state: present
+        name:
+          - coturn
+          - cron
+          - fail2ban
+          - iptables-persistent
+          - libpam-pwquality
+          - logrotate
+          - munin
+          - munin-node
+          - net-tools
+          - nginx
+          - ntp
+          - open-vm-tools
+          - python3-pip
+          - snmp
+          - snmpd
 
     # Opt out of ubuntu data collection
     #- name: Opt-out of ubuntu-report
@@ -64,70 +49,28 @@
       become_user: root
       apt:
         autoremove: yes
-    - name: "Enable keeping older kernels"
-      become: yes
-      become_user: root
-      command: mv /tmp/apt-auto-removal /etc/kernel/postinst.d/apt-auto-removal
+#    - name: "Enable keeping older kernels"
+#      become: yes
+#      become_user: root
+#      command: mv /tmp/01autoremove /etc/apt/apt.conf.d/01autoremove
 
     - name: "Create nginx ssl dir"
       become: yes
       become_user: root
       file: path='/etc/nginx/ssl' state=directory mode="0600" owner=root group=root
-    - name: "Install required pip packages"
-      become: yes
-      become_user: root
-      pip:
-        name: "{{ item }}"
-        executable: pip3
-      with_items:
-        - Pillow
-        - ipaddr
-        - requests
-        - twisted
-        - passlib
-        - netifaces
-    - name: "Create folders for installwizard python files"
-      become: yes
-      become_user: root
-      file: path={{item}} state=directory
-      with_items:
-        - '/usr/bin/'
-        - '{{si_dest}}/apps/bootstrap/'
-        - '{{si_dest}}/apps/reverseproxy/'
-        - '{{si_dest}}/apps/reverseproxy/steps/'
-        - '{{si_dest}}/platform/python/'
-        - '{{si_dest}}/platform/filesystem/'
-    - name: "Install installwizard python files"
-      become: yes
-      become_user: root
-      copy: src={{item.0}} dest={{item.1}} mode="0644" owner="root"
-      with_items:
-        - [[ '{{source_path}}/si/apps/reverseproxy/steps', '{{si_dest}}/apps/reverseproxy/' ]]
-        - [[ '{{source_path}}/si/apps/reverseproxy/templates', '{{si_dest}}/apps/reverseproxy/' ]]
-        - [[ '{{source_path}}/si/apps/reverseproxy/__init__.py', '{{si_dest}}/apps/reverseproxy/' ]]
-        - [[ '{{source_path}}/si/apps/reverseproxy/config_applicator.py', '{{si_dest}}/apps/reverseproxy/' ]]
-        - [[ '{{source_path}}/si/apps/reverseproxy/installwizard.py', '{{si_dest}}/apps/reverseproxy/' ]]
-        - [[ '{{source_path}}/si/apps/reverseproxy/step_error.py', '{{si_dest}}/apps/reverseproxy/' ]]
-        - [[ '{{source_path}}/si/apps/reverseproxy/utils.py', '{{si_dest}}/apps/reverseproxy/' ]]
-        - [[ '{{source_path}}/si/apps/__init__.py', '{{si_dest}}/apps/' ]]
-        - [[ '{{source_path}}/si/__init__.py', '{{si_dest}}/' ]]
-        - [[ '{{source_path}}/si/platform/__init__.py', '{{si_dest}}/platform/' ]]
-        - [[ '{{source_path}}/si/platform/python/__init__.py', '{{si_dest}}/platform/python/' ]]
-        - [[ '{{source_path}}/si/platform/python/nrcmd.py', '{{si_dest}}/platform/python/' ]]
-        - [[ '{{source_path}}/si/platform/filesystem/__init__.py', '{{si_dest}}/platform/filesystem/' ]]
-        - [[ '{{source_path}}/si/platform/filesystem/fileutils.py', '{{si_dest}}/platform/filesystem/' ]]
-        - [[ '{{source_path}}/si/platform/filesystem/filewriter.py', '{{si_dest}}/platform/filesystem/' ]]
-        - [[ '{{source_path}}/si/platform/string/__init__.py', '{{si_dest}}/platform/string/' ]]
-        - [[ '{{source_path}}/si/platform/string/utils.py', '{{si_dest}}/platform/string/' ]]
+
+    - name: "Install rp_turn python application"
+      ansible.builtin.pip:
+        name: /run/rp-turn
+
     - name: "Install installwizard bash script"
       become: yes
       become_user: root
       copy: src={{item.0}} dest={{item.1}} mode="0755" owner="root"
       with_items:
-        - [[ '{{source_path}}/{{rp_source}}/usr/bin/installwizard', '/usr/bin/' ]]
-        - [[ '{{source_path}}/{{rp_source}}/lib/systemd/system/set-interface-names.service', '/lib/systemd/system/' ]]
-        - [[ '{{source_path}}/{{rp_source}}/usr/sbin/set-interface-names', '/usr/sbin']]
-        - [[ '{{source_path}}/si/apps/bootstrap/set_interface_names.py', '{{si_dest}}/apps/bootstrap/']]
+        - [[ '{{playbook_dir}}/vm_files/usr/bin/installwizard', '/usr/bin/' ]]
+        - [[ '{{playbook_dir}}/vm_files/lib/systemd/system/set-interface-names.service', '/lib/systemd/system/' ]]
+        - [[ '{{playbook_dir}}/vm_files/usr/sbin/set-interface-names', '/usr/sbin']]
     - name: "Enable set-interface-names with symlink"
       become: yes
       become_user: root
@@ -145,24 +88,24 @@
       become_user: root
       copy: src={{item.0}} dest={{item.1}} mode="0644" owner="root"
       with_items:
-        - [[ '{{source_path}}/{{rp_source}}/etc/security/limits.d/pexiplimits.conf', '/etc/security/limits.d/' ]]
-        - [[ '{{source_path}}/{{rp_source}}/etc/sysctl.d/20-pexip-limits.conf', '/etc/sysctl.d/' ]]
-        - [[ '{{source_path}}/{{rp_source}}/etc/netplan/01-netcfg.yaml', '/etc/netplan/' ]]
-        - [[ '{{source_path}}/{{rp_source}}/etc/nginx/nginx.conf', '/etc/nginx/' ]]
-        - [[ '{{source_path}}/{{rp_source}}/etc/nginx/includes/pex-rewrites.conf', '/etc/nginx/includes/' ]]
-        - [[ '{{source_path}}/{{rp_source}}/etc/nginx/sites-available/pexlog-filtered', '/etc/nginx/sites-available/' ]]
-        - [[ '{{source_path}}/{{rp_source}}/etc/logrotate.d/nginx', '/etc/logrotate.d/' ]]
-        - [[ '{{source_path}}/{{rp_source}}/etc/ssl/pexip.cnf', '/etc/ssl/' ]]
-        - [[ '{{source_path}}/{{rp_source}}/etc/ssl/certs/dhparam.pem', '/etc/ssl/certs/' ]]
-        - [[ '/tmp/_rpbuild/motd', '/etc/' ]]
-        - [[ '{{source_path}}/{{rp_source}}/etc/fail2ban/filter.d/pexiprp.conf', '/etc/fail2ban/filter.d/' ]]
-        - [[ '{{source_path}}/{{rp_source}}/etc/fail2ban/action.d/sendmail-whois-lines.local', '/etc/fail2ban/action.d/sendmail-whois-lines.local' ]]
-        - [[ '{{source_path}}/{{rp_source}}/etc/fail2ban/jail.local', '/etc/fail2ban/' ]]
-        - [[ '{{source_path}}/{{rp_source}}/etc/munin/munin.conf', '/etc/munin/' ]]
-        - [[ '{{source_path}}/{{rp_source}}/etc/munin/munin-node.conf', '/etc/munin/' ]]
-        - [[ '{{source_path}}/{{rp_source}}/etc/update-manager/release-upgrades', '/etc/update-manager/' ]]
-        - [[ '{{source_path}}/{{rp_source}}/usr/share/pam-configs/pexpasswordpolicy', '/usr/share/pam-configs']]
-        - [[ '{{source_path}}/{{rp_source}}/var/www', '/var/' ]]
+        - [[ '{{playbook_dir}}/vm_files/etc/security/limits.d/pexiplimits.conf', '/etc/security/limits.d/' ]]
+        - [[ '{{playbook_dir}}/vm_files/etc/sysctl.d/20-pexip-limits.conf', '/etc/sysctl.d/' ]]
+        - [[ '{{playbook_dir}}/vm_files/etc/netplan/01-netcfg.yaml', '/etc/netplan/' ]]
+        - [[ '{{playbook_dir}}/vm_files/etc/nginx/nginx.conf', '/etc/nginx/' ]]
+        - [[ '{{playbook_dir}}/vm_files/etc/nginx/includes/pex-rewrites.conf', '/etc/nginx/includes/' ]]
+        - [[ '{{playbook_dir}}/vm_files/etc/nginx/sites-available/pexlog-filtered', '/etc/nginx/sites-available/' ]]
+        - [[ '{{playbook_dir}}/vm_files/etc/logrotate.d/nginx', '/etc/logrotate.d/' ]]
+        - [[ '{{playbook_dir}}/vm_files/etc/ssl/pexip.cnf', '/etc/ssl/' ]]
+        - [[ '{{playbook_dir}}/vm_files/etc/ssl/certs/dhparam.pem', '/etc/ssl/certs/' ]]
+#        - [[ '/tmp/_rpbuild/motd', '/etc/' ]]
+        - [[ '{{playbook_dir}}/vm_files/etc/fail2ban/filter.d/pexiprp.conf', '/etc/fail2ban/filter.d/' ]]
+        - [[ '{{playbook_dir}}/vm_files/etc/fail2ban/action.d/sendmail-whois-lines.local', '/etc/fail2ban/action.d/sendmail-whois-lines.local' ]]
+        - [[ '{{playbook_dir}}/vm_files/etc/fail2ban/jail.local', '/etc/fail2ban/' ]]
+        - [[ '{{playbook_dir}}/vm_files/etc/munin/munin.conf', '/etc/munin/' ]]
+        - [[ '{{playbook_dir}}/vm_files/etc/munin/munin-node.conf', '/etc/munin/' ]]
+        - [[ '{{playbook_dir}}/vm_files/etc/update-manager/release-upgrades', '/etc/update-manager/' ]]
+        - [[ '{{playbook_dir}}/vm_files/usr/share/pam-configs/pexpasswordpolicy', '/usr/share/pam-configs']]
+        - [[ '{{playbook_dir}}/vm_files/var/www', '/var/' ]]
 
     - name: "Setup cron job to logrotate every hour"
       become: yes
@@ -187,7 +130,7 @@
     - name: "Install profile file to invoke installwizard on first login"
       copy: src={{item.0}} dest={{item.1}} mode="0644"
       with_items:
-        - [[ '{{source_path}}/{{rp_source}}/home/pexip/.profile', '/home/pexip/' ]]
+        - [[ '{{playbook_dir}}/vm_files/home/pexip/.profile', '/home/pexip/' ]]
     - name: "Ensure fail2ban disabled"
       become: yes
       become_user: root
@@ -232,7 +175,7 @@
       become_user: root
       copy: src={{item.0}} dest={{item.1}} mode="0644"
       with_items:
-        - [[ '{{source_path}}/{{rp_source}}/etc/ssh/sshd_config', '/etc/ssh/sshd_config' ]]
+        - [[ '{{playbook_dir}}/vm_files/etc/ssh/sshd_config', '/etc/ssh/sshd_config' ]]
 
     - name: "Set new password complexity policy"
       become: yes
@@ -258,24 +201,3 @@
       become_user: root
       command: update-grub
       when: grubcmdline.changed
-
-    - name: "Clean apt cache"
-      become: yes
-      become_user: root
-      command: apt-get clean
-
-    - name: "Remove unneeded files to make OVA smaller (1/2)"
-      become: yes
-      become_user: root
-      command: /usr/bin/find /var/log /var/cache /var/lib/apt/lists -name "cracklib" -prune -o -type f -print
-      register: files_to_delete
-    - name: "Remove unneeded files to make OVA smaller (2/2)"
-      file:
-        path: "{{ item }}"
-        state: absent
-      with_items: "{{ files_to_delete.stdout }}"
-
-    - name: "Free all unused storage"
-      become: yes
-      become_user: root
-      command: fstrim -av

@@ -1,6 +1,4 @@
 #cloud-config
-package_update: true
-
 users:
   - name: pexip
     lock_passwd: True
@@ -9,21 +7,22 @@ users:
     # ssh_authorized_keys:
     #   - <ssh public key>
 
+package_update: true
+package_upgrade: true
+packages:
+  - ansible
+  - git
 
-ansible:
-  install_method: distro
-  package_name: ansible
-  pull:
-    # Local development environment
-    # Run a http server using: python -m http.server --bind 192.168.100.1 8000
-    # full: true
-    # url: http://192.168.100.1:8000/
-    # checkout: <branch/commit sha>
-    url: https://github.com/pexip/rp-turn
-    playbook_name: "ansible.yml"
-    directory: /tmp/rp-turn
+runcmd:
+  - echo "BEGIN BUILD" 
+    && PYTHONUNBUFFERED=1 ansible-pull --url https://github.com/pexip/rp-turn --directory /run/rp-turn ansible.yml
+    && apt-get -y autoremove ansible git
+    && find /var/log /var/cache /var/lib/apt/lists -name "cracklib" -prune -o -type f -exec rm {} ';'
+    && fstrim -av
+    && echo "END BUILD"
+    && touch /run/build-succeed
 
 power_state:
  mode: poweroff
  message: Cloud-init completed
- condition: True
+ condition: "[ -e /run/build-succeed ]"

@@ -192,8 +192,8 @@ class TestDefaultSettings(TestCase):
         self._function = None
 
     @patch("subprocess.check_call")
-    @patch("rp_turn.filewriter.HeadedFileWriter")
-    @patch("rp_turn.filewriter.FileWriter")
+    @patch("rp_turn.platform.filewriter.HeadedFileWriter")
+    @patch("rp_turn.platform.filewriter.FileWriter")
     def _run_settings_applied_test(
         self, filewriter_mock, headed_filewriter_mock, subprocess_mock
     ):

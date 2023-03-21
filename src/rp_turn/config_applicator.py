@@ -13,7 +13,8 @@ from typing import Any
 import jinja2
 import yaml
 
-from rp_turn import filewriter, utils
+from rp_turn import utils
+from rp_turn.platform import filewriter
 
 DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
 
