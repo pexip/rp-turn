@@ -182,11 +182,6 @@
       become_user: root
       command: echo "set libpam-runtime/profiles pexpasswordpolicy, unix, systemd, capability" | debconf-communicate
 
-    - name: "Expire the pexip user password"
-      become: yes
-      become_user: root
-      command: chage -d 0 pexip
-
     - name: "Change GRUB_CMD_LINE_LINUX_DEFAULT to enable serial adapters"
       become: yes
       become_user: root
