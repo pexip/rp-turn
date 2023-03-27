@@ -22,7 +22,7 @@ LogLevel INFO
 LoginGraceTime 120
 PermitRootLogin no
 StrictModes yes
-AllowGroups adm
+AllowUsers pexip
 
 PubkeyAuthentication yes
 #AuthorizedKeysFile	%h/.ssh/authorized_keys
