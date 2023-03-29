@@ -1,0 +1,11 @@
+instance-id: pexip-rp-turn
+local-hostname: pexip-rp-turn
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    switchports:
+      match:
+        name: "*"
+      dhcp4: yes
+

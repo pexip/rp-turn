@@ -130,6 +130,11 @@ dmypy.json
 
 # Disk images
 *.img
+*.qcow2
 
 # Jetbrains
 .idea
+
+# build system
+.invoke
+.image_cache

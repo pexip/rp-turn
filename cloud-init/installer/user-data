@@ -1,0 +1,27 @@
+#cloud-config
+users:
+  - name: pexip
+    lock_passwd: True
+    sudo: [ "ALL=(ALL) NOPASSWD:ALL" ]
+    shell: /bin/bash
+
+package_update: true
+package_upgrade: true
+packages:
+  - ansible
+  - git
+
+runcmd:
+  - echo "BEGIN BUILD" 
+    && PYTHONUNBUFFERED=1 ansible-pull --url https://github.com/pexip/rp-turn --directory /run/rp-turn ansible.yml
+    && apt-get -y autoremove ansible git
+    && chage -d 0 pexip  # expire the pexip user password
+    && find /var/log /var/cache /var/lib/apt/lists -name "cracklib" -prune -o -type f -exec rm {} ';'
+    && fstrim -av
+    && echo "END BUILD"
+    && touch /run/build-succeed
+
+power_state:
+  mode: poweroff
+  message: Cloud-init completed
+  condition: "[ -e /run/build-succeed ]"
