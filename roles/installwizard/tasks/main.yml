@@ -1,0 +1,19 @@
+---
+- name: Install rp_turn python application
+  ansible.builtin.pip:
+    name: /run/rp-turn
+
+- name: Install installwizard bash script
+  become: yes
+  become_user: root
+  copy:
+    src: installwizard
+    dest: /usr/bin/installwizard
+    mode: 0755
+    owner: root
+
+- name: Install profile file to invoke installwizard on first login
+  copy:
+    src: .profile
+    dest: /home/pexip/
+    mode: 0644

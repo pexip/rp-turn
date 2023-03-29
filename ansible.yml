@@ -1,198 +1,30 @@
 ---
 - hosts: localhost
-  vars:
-    rp_source: "vm/reverseproxy/src"
-    si_dest: "/opt/pexip/lib/python3.10/site-packages/si"
-    dest_dir: "/home/pexip/rp_server"
   remote_user: pexip
   become: yes
   become_user: pexip
-  tasks:
-    - name: "Install required apt packages"
-      become: yes
-      become_user: root
-      apt:
-        state: present
-        name:
-          - coturn
-          - cron
-          - fail2ban
-          - iptables-persistent
-          - libpam-pwquality
-          - logrotate
-          - munin
-          - munin-node
-          - net-tools
-          - nginx
-          - ntp
-          - open-vm-tools
-          - python3-pip
-          - snmp
-          - snmpd
+  roles:
+    - role: apt
+    - role: fail2ban
+    - role: nginx
+    - role: munin
+    - role: set-interface-names
+    - role: installwizard
+    - role: security
 
-    # Opt out of ubuntu data collection
-    #- name: Opt-out of ubuntu-report
-    #  command: ubuntu-report -f send no
-    - name: "Remove popularity-contest"
-      apt:
-        pkg: popularity-contest
-        state: absent
-      become: yes
-      become_user: root
-    - name: "Disable ubuntu bug report"
-      become: yes
-      become_user: root
-      copy: dest=/etc/default/apport owner=root group=root mode="0644" force=yes content="enabled=0"
-
-    - name: "Remove dependencies that are no longer required"
-      become: yes
-      become_user: root
-      apt:
-        autoremove: yes
-#    - name: "Enable keeping older kernels"
+# TODO: see if below is required?
+#       - { src: /tmp/_rpbuild/motd', dest: '/etc/' }
+#    - name: "Change GRUB_CMD_LINE_LINUX_DEFAULT to enable serial adapters"
 #      become: yes
 #      become_user: root
-#      command: mv /tmp/01autoremove /etc/apt/apt.conf.d/01autoremove
-
-    - name: "Create nginx ssl dir"
-      become: yes
-      become_user: root
-      file: path='/etc/nginx/ssl' state=directory mode="0600" owner=root group=root
-
-    - name: "Install rp_turn python application"
-      ansible.builtin.pip:
-        name: /run/rp-turn
-
-    - name: "Install installwizard bash script"
-      become: yes
-      become_user: root
-      copy: src={{item.0}} dest={{item.1}} mode="0755" owner="root"
-      with_items:
-        - [[ '{{playbook_dir}}/vm_files/usr/bin/installwizard', '/usr/bin/' ]]
-        - [[ '{{playbook_dir}}/vm_files/lib/systemd/system/set-interface-names.service', '/lib/systemd/system/' ]]
-        - [[ '{{playbook_dir}}/vm_files/usr/sbin/set-interface-names', '/usr/sbin']]
-    - name: "Enable set-interface-names with symlink"
-      become: yes
-      become_user: root
-      file: src=/lib/systemd/system/set-interface-names.service dest=/etc/systemd/system/network-pre.target.wants/set-interface-names.service owner=root group=root mode="0644" state=link
-    - name: "Remove default nginx config"
-      become: yes
-      become_user: root
-      file: path={{item}} state=absent
-      with_items:
-        - '/etc/nginx/sites-available/default'
-        - '/etc/nginx/sites-enabled/default'
-
-    - name: "Install new system configuration"
-      become: yes
-      become_user: root
-      copy: src={{item.0}} dest={{item.1}} mode="0644" owner="root"
-      with_items:
-        - [[ '{{playbook_dir}}/vm_files/etc/security/limits.d/pexiplimits.conf', '/etc/security/limits.d/' ]]
-        - [[ '{{playbook_dir}}/vm_files/etc/sysctl.d/20-pexip-limits.conf', '/etc/sysctl.d/' ]]
-        - [[ '{{playbook_dir}}/vm_files/etc/netplan/01-netcfg.yaml', '/etc/netplan/' ]]
-        - [[ '{{playbook_dir}}/vm_files/etc/nginx/nginx.conf', '/etc/nginx/' ]]
-        - [[ '{{playbook_dir}}/vm_files/etc/nginx/includes/pex-rewrites.conf', '/etc/nginx/includes/' ]]
-        - [[ '{{playbook_dir}}/vm_files/etc/nginx/sites-available/pexlog-filtered', '/etc/nginx/sites-available/' ]]
-        - [[ '{{playbook_dir}}/vm_files/etc/logrotate.d/nginx', '/etc/logrotate.d/' ]]
-        - [[ '{{playbook_dir}}/vm_files/etc/ssl/pexip.cnf', '/etc/ssl/' ]]
-        - [[ '{{playbook_dir}}/vm_files/etc/ssl/certs/dhparam.pem', '/etc/ssl/certs/' ]]
-#        - [[ '/tmp/_rpbuild/motd', '/etc/' ]]
-        - [[ '{{playbook_dir}}/vm_files/etc/fail2ban/filter.d/pexiprp.conf', '/etc/fail2ban/filter.d/' ]]
-        - [[ '{{playbook_dir}}/vm_files/etc/fail2ban/action.d/sendmail-whois-lines.local', '/etc/fail2ban/action.d/sendmail-whois-lines.local' ]]
-        - [[ '{{playbook_dir}}/vm_files/etc/fail2ban/jail.local', '/etc/fail2ban/' ]]
-        - [[ '{{playbook_dir}}/vm_files/etc/munin/munin.conf', '/etc/munin/' ]]
-        - [[ '{{playbook_dir}}/vm_files/etc/munin/munin-node.conf', '/etc/munin/' ]]
-        - [[ '{{playbook_dir}}/vm_files/etc/update-manager/release-upgrades', '/etc/update-manager/' ]]
-        - [[ '{{playbook_dir}}/vm_files/usr/share/pam-configs/pexpasswordpolicy', '/usr/share/pam-configs']]
-        - [[ '{{playbook_dir}}/vm_files/var/www', '/var/' ]]
-
-    - name: "Setup cron job to logrotate every hour"
-      become: yes
-      become_user: root
-      file: src=/etc/cron.daily/logrotate dest=/etc/cron.hourly/logrotate owner=root group=root mode="0644" state=link force=yes follow=false
-
-    - name: "Create sites-enabled symlink to pexlog-filtered"
-      become: yes
-      become_user: root
-      file: src=/etc/nginx/sites-available/pexlog-filtered dest=/etc/nginx/sites-enabled/pexlog-filtered owner=root group=root mode="0644" state=link force=yes follow=false
-    # Checks whether /etc/nginx/nginx.conf is valid (warning: this fails if run after creating the symlink)
-    - name: "Re-start nginx"
-      become: yes
-      become_user: root
-      service: name=nginx state=restarted
-    # Creates symlink to non-existent file (pexapp) after restarting nginx so that the service can start correctly
-    - name: "Create sites-enabled symlink to pexapp"
-      become: yes
-      become_user: root
-      file: src=/etc/nginx/sites-available/pexapp dest=/etc/nginx/sites-enabled/pexapp owner=root group=root mode="0644" state=link force=yes follow=false
-
-    - name: "Install profile file to invoke installwizard on first login"
-      copy: src={{item.0}} dest={{item.1}} mode="0644"
-      with_items:
-        - [[ '{{playbook_dir}}/vm_files/home/pexip/.profile', '/home/pexip/' ]]
-    - name: "Ensure fail2ban disabled"
-      become: yes
-      become_user: root
-      service: name=fail2ban enabled=no state=stopped
-    - name: "Disable most default munin plugins"
-      become: yes
-      become_user: root
-      file: path={{item}} state=absent
-      with_items:
-        - '/etc/munin/plugins/users'
-        - '/etc/munin/plugins/irqstats'
-        - '/etc/munin/plugins/swap'
-        - '/etc/munin/plugins/uptime'
-        - '/etc/munin/plugins/forks'
-        - '/etc/munin/plugins/munin_stats'
-        - '/etc/munin/plugins/open_files'
-        - '/etc/munin/plugins/open_inodes'
-        - '/etc/munin/plugins/df'
-        - '/etc/munin/plugins/interrupts'
-        - '/etc/munminclass=3, minlen=8in/plugins/vmstat'
-        - '/etc/munin/plugins/processes'
-        - '/etc/munin/plugins/netstat'
-        - '/etc/munin/plugins/df_inode'
-        - '/etc/munin/plugins/entropy'
-        - '/etc/munin/plugins/fw_packets'
-        - '/etc/munin/plugins/if_err_eth0'
-        - '/etc/munin/plugins/threads'
-        - '/etc/munin/plugins/proc_pri'
-        - '/etc/munin/plugins/diskstats'
-        # - '/etc/munin/plugins/cpu'
-        # - '/etc/munin/plugins/load'
-        # - '/etc/munin/plugins/memory'
-        # - '/etc/munin/plugins/if_eth0'
-
-    - name: "Create munin stats symlink"
-      become: yes
-      become_user: root
-      file: src=/var/cache/munin/www/localdomain/localhost.localdomain dest=/var/www/stats/img/localhost.localdomain owner=root group=root mode="0644" state=link force=yes
-
-    - name: "Install new ssh configuration ref issue 12919"
-      become: yes
-      become_user: root
-      copy: src={{item.0}} dest={{item.1}} mode="0644"
-      with_items:
-        - [[ '{{playbook_dir}}/vm_files/etc/ssh/sshd_config', '/etc/ssh/sshd_config' ]]
-
-    - name: "Set new password complexity policy"
-      become: yes
-      become_user: root
-      command: echo "set libpam-runtime/profiles pexpasswordpolicy, unix, systemd, capability" | debconf-communicate
-
-    - name: "Change GRUB_CMD_LINE_LINUX_DEFAULT to enable serial adapters"
-      become: yes
-      become_user: root
-      lineinfile:
-        dest: /etc/default/grub
-        regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
-        line: 'GRUB_CMDLINE_LINUX_DEFAULT="quiet splash security=selinux selinux=1 console=ttyS0 console=tty0 earlyprintk=ttyS0 rootdelay=300 fsck.mode=force fsck.repair=yes"'
-        backrefs: yes
-      register: grubcmdline
-    - name: "update-grub"
-      become: yes
-      become_user: root
-      command: update-grub
-      when: grubcmdline.changed
+#      lineinfile:
+#        dest: /etc/default/grub
+#        regexp: '^GRUB_CMDLINE_LINUX_DEFAULT='
+#        line: 'GRUB_CMDLINE_LINUX_DEFAULT="quiet splash security=selinux selinux=1 console=ttyS0 console=tty0 earlyprintk=ttyS0 rootdelay=300 fsck.mode=force fsck.repair=yes"'
+#        backrefs: yes
+#      register: grubcmdline
+#    - name: "update-grub"
+#      become: yes
+#      become_user: root
+#      command: update-grub
+#      when: grubcmdline.changed

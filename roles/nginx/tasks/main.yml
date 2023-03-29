@@ -1,0 +1,83 @@
+---
+- name: Create nginx ssl dir
+  become: yes
+  become_user: root
+  file:
+    path: /etc/nginx/ssl
+    state: directory
+    mode: 0600
+    owner: root
+    group: root
+
+- name: Remove default nginx config
+  become: yes
+  become_user: root
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_list:
+    - /etc/nginx/sites-available/default
+    - /etc/nginx/sites-enabled/default
+
+- name: Create required folders
+  become: yes
+  become_user: root
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+  with_list:
+    - /etc/nginx/includes
+    - /etc/nginx/sites-available
+    - /etc/nginx/sites-enabled
+
+- name: Install nginx configuration
+  become: yes
+  become_user: root
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: 0644
+    owner: root
+  with_list:
+    - { src: nginx.conf, dest: /etc/nginx/nginx.conf }
+    - { src: pex-rewrites.conf, dest: /etc/nginx/includes/pex-rewrites.conf }
+    - { src: pexlog-filtered, dest: /etc/nginx/sites-available/pexlog-filtered }
+    - { src: www, dest: /var }
+
+- name: Create sites-enabled symlink to pexlog-filtered
+  become: yes
+  become_user: root
+  file:
+    src: /etc/nginx/sites-available/pexlog-filtered
+    dest: /etc/nginx/sites-enabled/pexlog-filtered
+    owner: root
+    group: root
+    mode: 0644
+    state: link
+    force: yes
+    follow: false
+
+# Checks whether /etc/nginx/nginx.conf is valid (warning: this fails if run after creating the symlink)
+- name: Re-start nginx
+  become: yes
+  become_user: root
+  ansible.builtin.systemd:
+    name: nginx
+    state: restarted
+
+# Creates symlink to non-existent file (pexapp) after restarting nginx so that the service can start correctly
+- name: Create sites-enabled symlink to pexapp
+  become: yes
+  become_user: root
+  file:
+    src: /etc/nginx/sites-available/pexapp
+    dest: /etc/nginx/sites-enabled/pexapp
+    owner: root
+    group: root
+    mode: 0644
+    state: link
+    force: yes
+    follow: false

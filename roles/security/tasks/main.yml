@@ -1,0 +1,21 @@
+---
+- name: Install security configuration
+  become: yes
+  become_user: root
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: 0644
+    owner: root
+  with_list:
+    - { src: pexiplimits.conf, dest: /etc/security/limits.d/pexiplimits.conf }
+    - { src: 20-pexip-limits.conf, dest: /etc/sysctl.d/20-pexip-limits.conf }
+    - { src: pexip.cnf, dest: /etc/ssl/pexip.cnf }
+    - { src: dhparam.pem, dest: /etc/ssl/certs/dhparam.pem }
+    - { src: pexpasswordpolicy, dest: /usr/share/pam-configs/pexpasswordpolicy }
+    - { src: sshd_config, dest: /etc/ssh/sshd_config }
+
+- name: Set new password complexity policy
+  become: yes
+  become_user: root
+  command: echo "set libpam-runtime/profiles pexpasswordpolicy, unix, systemd, capability" | debconf-communicate

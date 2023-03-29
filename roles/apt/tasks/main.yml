@@ -1,0 +1,59 @@
+---
+- name: Install required apt packages
+  become: yes
+  become_user: root
+  apt:
+    state: present
+    name:
+      - coturn
+      - cron
+      - fail2ban
+      - iptables-persistent
+      - libpam-pwquality
+      - logrotate
+      - munin
+      - munin-node
+      - net-tools
+      - nginx
+      - ntp
+      - open-vm-tools
+      - python3-pip
+      - snmp
+      - snmpd
+
+- name: Opt out of data collection
+  become: yes
+  become_user: root
+  apt:
+    state: absent
+    name:
+      - apport
+      - popularity-contest
+      - ubuntu-report
+
+- name: Remove dependencies that are no longer required
+  become: yes
+  become_user: root
+  apt:
+    autoremove: yes
+    purge: yes
+
+
+- name: Create required folders
+  become: yes
+  become_user: root
+  file:
+    path: /etc/update-manager
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+
+- name: Disable OS release upgrade prompt
+  become: yes
+  become_user: root
+  copy:
+    src: release-upgrades
+    dest: /etc/update-manager/release-upgrades
+    mode: 0644
+    owner: root

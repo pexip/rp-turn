@@ -1,0 +1,22 @@
+---
+- name: Setup cron job to logrotate every hour
+  become: yes
+  become_user: root
+  file:
+    src: /etc/cron.daily/logrotate
+    dest: /etc/cron.hourly/logrotate
+    owner: root
+    group: root
+    mode: 0644
+    state: link
+    force: yes
+    follow: false
+
+- name: Rotate nginx logs
+  become: yes
+  become_user: root
+  copy:
+    src: nginx
+    dest: /etc/logrotate.d/nginx
+    mode: 0644
+    owner: root

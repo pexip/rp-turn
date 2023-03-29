@@ -1,0 +1,27 @@
+---
+- name: Install set-interface-names bash script
+  become: yes
+  become_user: root
+  copy:
+    src: set-interface-names
+    dest: /usr/sbin
+    mode: 0755
+    owner: root
+
+- name: Install set-interface-names service
+  become: yes
+  become_user: root
+  copy:
+    src: set-interface-names.service
+    dest: /lib/systemd/system/
+    mode: 0644
+    owner: root
+
+- name: Enable set-interface-names service
+  become: yes
+  become_user: root
+  ansible.builtin.systemd:
+    name: set-interface-names
+    daemon_reload: true
+    enabled: true
+    masked: no

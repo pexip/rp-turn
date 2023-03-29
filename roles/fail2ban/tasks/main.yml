@@ -1,0 +1,21 @@
+---
+- name: Install fail2ban config
+  become: yes
+  become_user: root
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: 0644
+    owner: root
+  with_list:
+    - { src: pexiprp.conf, dest: /etc/fail2ban/filter.d/pexiprp.conf }
+    - { src: sendmail-whois-lines.local, dest: /etc/fail2ban/action.d/sendmail-whois-lines.local }
+    - { src: jail.local, dest: /etc/fail2ban/jail.local }
+
+- name: Disable fail2ban service
+  become: yes
+  become_user: root
+  ansible.builtin.systemd:
+    name: fail2ban
+    state: stopped
+    enabled: no
