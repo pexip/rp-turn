@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Pexip Reverse Proxy and Turn Server installwizard"
 authors = ["Michael Oultram <michael.oultram@pexip.com>"]
 readme = "README.md"
-packages = [{include = "rp_turn", from = "src"}]
+packages = [{ include = "rp_turn", from = "src" }]
 exclude = [
     "**/tests/**/*"
 ]
@@ -35,9 +35,11 @@ invoke = "^2.0.0"
 [tool.poetry.urls]
 "Bug Tracker" = "https://github.com/pexip/rp-turn/issues"
 
+
 [tool.black]
 line-length = 88
 target-version = ['py39', 'py310', 'py311']
+
 
 [tool.isort]
 multi_line_output = 3
@@ -47,75 +49,39 @@ use_parentheses = true
 ensure_newline_before_comments = true
 line_length = 88
 
+
 [tool.pylint.MASTER]
 jobs = 0
 persistent = true
 suggestion-mode = true
 disable = """
-    locally-disabled,
     fixme,
     duplicate-code,
-    too-many-ancestors,
 """
 
 [tool.pylint.FORMAT]
-max-line-length=120
-
-[tool.pylint.REPORTS]
-output-format = "colorized"
-reports = false
-score = true
-
-[tool.pylint.LOGGING]
-logging-format-style = "old"
-logging-modules = "logging"
-
-[tool.pylint.MISCELLANEOUS]
-notes="""
-    FIXME,
-    XXX,
-    TODO,
-"""
-
-[tool.pylint.TYPECHECK]
-# pyVmomi typechecking is picked up by mypy
-ignored-modules = """
-    lxml,
-    pyVmomi,
-"""
-
-[tool.pylint.BASIC]
-good-names = """
-    i,
-    j,
-    k,
-    ex,
-    Run,
-    _,
-    T,
-    tx,
-    rx,
-    vm,
-"""
-
-[tool.pylint.CLASSES]
-defining-attr-methods = """
-    __init__,
-    __new__,
-    setUp,
-    asyncSetUp,
-"""
+max-line-length = 120
 
 [tool.pylint.DESIGN]
 max-args = 8
 max-attributes = 10
 
-[tool.coverage.report]
-# Show missing lines
-show_missing = true
 
-# Fail when <= 81% coverage
-fail_under = 81
+[tool.mypy]
+cache_dir = ".cache/mypy"
+no_incremental = true
+ignore_missing_imports = false
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_return_any = true
+warn_unreachable = true
+disallow_untyped_defs = true
 
-# Omit test directories from the report
-omit = ["*/tests/*"]
+[[tool.mypy.overrides]]
+module = "*.tests.*"
+ignore_errors = true
+
+
+[tool.pytest.ini_options]
+cache_dir = ".cache/pytest"

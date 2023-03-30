@@ -4,7 +4,7 @@ from functools import wraps
 from pathlib import Path
 from invoke import task
 
-CHECKSUM_FILE = Path(__file__).parent.parent.absolute() / ".invoke"
+CHECKSUM_FILE = Path(__file__).parent.parent.absolute() / ".cache" / "invoke.json"
 
 
 class checksum:

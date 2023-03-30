@@ -6,7 +6,7 @@ from invoke import Collection
 from buildtools import dev, debian, ubuntu, python, vmbuild
 
 root = Path(__file__).parent.absolute()
-image_cache = root / ".image_cache"
+image_cache = root / ".cache" / "images"
 
 python_src = root / "src"
 os.makedirs(python_src, exist_ok=True)

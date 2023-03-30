@@ -24,7 +24,7 @@ def black(c, source=None):
 @task(setup_env)
 def mypy(c, source=None):
     source = source or c.python.source
-    c.run(f"poetry run mypy --config-file mypy.ini {source}")
+    c.run(f"poetry run mypy {source}")
 
 
 @task(setup_env)

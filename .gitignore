@@ -134,7 +134,3 @@ dmypy.json
 
 # Jetbrains
 .idea
-
-# build system
-.invoke
-.image_cache
