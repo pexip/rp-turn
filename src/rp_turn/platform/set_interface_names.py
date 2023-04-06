@@ -49,10 +49,7 @@ class InterfaceMapper:  # pylint: disable=too-few-public-methods
         if new_devices:
             index = len(self._interface_map)
             for device in sorted(new_devices, key=lambda a: active_devices[a][1]):
-                self._interface_map[device] = (
-                    f"nic{index:%d}",
-                    active_devices[device][2],
-                )
+                self._interface_map[device] = (f"nic{index}", active_devices[device][2])
                 LOGGER.info(
                     'Found new NIC. Path="%s" Name="%s"',
                     device,
