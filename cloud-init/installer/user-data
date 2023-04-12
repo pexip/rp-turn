@@ -1,7 +1,9 @@
 #cloud-config
 users:
   - name: pexip
-    lock_passwd: True
+    lock_passwd: false
+    # passwd: PEXIP
+    passwd: "$6$lahth5Quaechai0i$HC0ZBqAGPSBeIytUiPlMZArhZWOGRnc3wvzOmpxCP6ikhhr1eHDTVUHJpBcRilH4hnyAoWOaKfkVQfzjLwDfb/"
     sudo: [ "ALL=(ALL) NOPASSWD:ALL" ]
     shell: /bin/bash
 
@@ -15,7 +17,7 @@ runcmd:
   - echo "BEGIN BUILD" 
     && PYTHONUNBUFFERED=1 ansible-pull --url https://github.com/pexip/rp-turn --directory /run/rp-turn ansible.yml
     && apt-get -y autoremove ansible git
-    && chage -d 0 pexip  # expire the pexip user password
+    && chage -d 0 pexip
     && find /var/log /var/cache /var/lib/apt/lists -name "cracklib" -prune -o -type f -exec rm {} ';'
     && fstrim -av
     && echo "END BUILD"
