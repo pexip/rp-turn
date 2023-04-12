@@ -14,7 +14,7 @@ def cleanup(c, image_name):
 def virt_install(
     c, image_filename: str, cloud_init: str | None = None
 ):
-    cloud_init = Path(cloud_init or "cloud-init/installer")
+    cloud_init = Path(cloud_init or "cloud-init/installer").absolute()
     image_name = Path(image_filename).stem
     cleanup(c, image_name)
 
@@ -34,7 +34,7 @@ def virt_install(
                 f'--name="pexip-rp-turn-{image_name}"',
                 f"--os-variant={os_variant}",
                 f'--disk="{build_image}"',
-                f'--cloud-init "user-data={user_data},meta-data={meta_data}"',
+                f'--cloud-init="user-data={user_data},meta-data={meta_data}"',
                 "--import",
             )
         ),
