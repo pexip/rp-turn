@@ -11,6 +11,7 @@
     - role: set-interface-names
     - role: installwizard
     - role: security
+    - role: version
 
 # TODO: see if below is required?
 #       - { src: /tmp/_rpbuild/motd', dest: '/etc/' }

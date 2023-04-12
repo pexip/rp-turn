@@ -1,0 +1,4 @@
+NAME="Pexip Reverse Proxy/Turn"
+VERSION="{{ build_numericversion }}"
+BUILD="{{ build_pseudoversion }}"
+BUILD_DATE="{{ build_date }}"

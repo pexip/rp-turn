@@ -1,0 +1,26 @@
+---
+- name: Calculate numericversion
+  command: python3 -c "import rp_turn; print(rp_turn.__version__)"
+  register: numericversion_command
+
+- name: Calculate pseudoversion
+  become: yes
+  become_user: root
+  command: git rev-list HEAD --count
+  register: pseudoversion_command
+
+- name: Set version facts
+  ansible.builtin.set_fact:
+    build_numericversion: "{{ numericversion_command.stdout }}"
+    build_pseudoversion: "{{ pseudoversion_command.stdout }}"
+    build_date: "{{ ansible_date_time.date }} {{ ansible_date_time.time }}"
+
+- name: Write out /etc/rp-turn-release
+  become: yes
+  become_user: root
+  ansible.builtin.template:
+    src: rp-turn-release
+    dest: /etc/rp-turn-release
+    owner: root
+    group: root
+    mode: '0644'
