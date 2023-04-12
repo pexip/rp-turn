@@ -1,5 +1,7 @@
 ---
 - name: Install rp_turn python application
+  become: yes
+  become_user: root
   ansible.builtin.pip:
     name: /run/rp-turn
 
