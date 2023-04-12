@@ -21,6 +21,29 @@
       - snmp
       - snmpd
 
+- name: Remove snapd if installed
+  become: yes
+  become_user: root
+  apt:
+    state: absent
+    purge: true
+    name:
+      - gnome-software-plugin-snap
+      - snapd
+      - squashfs-tools
+
+- name: Remove left over snap files
+  become: yes
+  become_user: root
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_list:
+    - /snap
+    - /var/snap
+    - /var/cache/snapd
+    - /var/lib/snapd
+
 - name: Opt out of data collection
   become: yes
   become_user: root
@@ -37,7 +60,6 @@
   apt:
     autoremove: yes
     purge: yes
-
 
 - name: Create required folders
   become: yes
