@@ -4,7 +4,7 @@ users:
     lock_passwd: false
     # passwd: PEXIP
     passwd: "$6$lahth5Quaechai0i$HC0ZBqAGPSBeIytUiPlMZArhZWOGRnc3wvzOmpxCP6ikhhr1eHDTVUHJpBcRilH4hnyAoWOaKfkVQfzjLwDfb/"
-    sudo: [ "ALL=(ALL) NOPASSWD:ALL" ]
+    groups: sudo
     shell: /bin/bash
 
 package_update: true
