@@ -84,7 +84,7 @@ Multiple networks can be chosen.
             warn_msg = f"Warning: network was translated to {network_hostbits.exploded}/{network.netmask.exploded}"
             self.display(warn_msg)
         self.display(
-            f"This management network allows ssh access to {network.num_addresses} ip addresses"
+            f"This management network allows SSH access to {network.num_addresses} IP addresses"
         )
         self._answers.append(network.exploded)
 
