@@ -1,3 +1,4 @@
+from __future__ import annotations
 from invoke import task
 
 from buildtools.utils import checksum

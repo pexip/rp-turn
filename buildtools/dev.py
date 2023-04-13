@@ -1,3 +1,4 @@
+from __future__ import annotations
 import stat
 from functools import partial
 from pathlib import Path
