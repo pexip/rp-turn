@@ -1,0 +1,15 @@
+#!/bin/sh
+
+if [ ! -r "/etc/rp-turn-release" ]; then
+  printf "Pexip Reverse Proxy/Turn\nWARNING: Failed to find version file!\n\n"
+  exit 0
+fi
+
+eval "$(cat /etc/rp-turn-release)"
+
+printf "#############################################\n\n"
+printf "Product name : ${NAME}\n"
+printf "Version      : ${VERSION}\n"
+printf "Build        : ${BUILD}\n"
+printf "Build Date   : ${BUILD_DATE}\n\n"
+printf "#############################################\n\n"
