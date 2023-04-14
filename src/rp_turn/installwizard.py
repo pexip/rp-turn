@@ -2,9 +2,10 @@
 Pexip installation wizard.
 """
 
-# Standard library imports
-from __future__ import print_function
 
+from __future__ import annotations
+
+# Standard library imports
 import argparse
 import copy
 import itertools

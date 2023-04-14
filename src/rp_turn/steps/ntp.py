@@ -2,6 +2,8 @@
 Pexip installation wizard step to setup ntp servers
 """
 
+from __future__ import annotations
+
 import logging
 from collections import defaultdict
 from ipaddress import IPv4Address

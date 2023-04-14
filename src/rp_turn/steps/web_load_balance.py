@@ -2,6 +2,8 @@
 Pexip installation wizard step to setup fail2ban
 """
 
+from __future__ import annotations
+
 import logging
 from collections import defaultdict
 from functools import partial
