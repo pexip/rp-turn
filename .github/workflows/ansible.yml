@@ -20,12 +20,13 @@ jobs:
   docker:
     needs: syntax
     runs-on: ubuntu-latest
-    matrix:
-      base-os:
-        - debian-bookworm
-        - debian-bullseye
-        - ubuntu-focal
-        - ubuntu-jammy
+    strategy:
+      matrix:
+        base-os:
+          - debian-bookworm
+          - debian-bullseye
+          - ubuntu-focal
+          - ubuntu-jammy
     steps:
       - uses: actions/checkout@v3
       - name: Install poetry
@@ -35,4 +36,4 @@ jobs:
           python-version: '3.11'
           cache: 'poetry'
       - run: poetry install
-      - run: poetry run invoke ansible.{{ matrix.base-os }}
+      - run: poetry run invoke ansible.${{ matrix.base-os }}
