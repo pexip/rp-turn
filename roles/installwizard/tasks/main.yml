@@ -4,6 +4,7 @@
   become_user: root
   ansible.builtin.pip:
     name: /run/rp-turn
+    extra_args: --break-system-packages
 
 - name: Install installwizard bash script
   become: yes

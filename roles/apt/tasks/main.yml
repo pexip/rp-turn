@@ -17,6 +17,7 @@
       - nginx
       - ntp
       - open-vm-tools
+      - python3-full
       - python3-pip
       - snmp
       - snmpd
