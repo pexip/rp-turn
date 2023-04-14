@@ -25,4 +25,76 @@ jobs:
           python-version: ${{ matrix.py-version }}
           cache: 'poetry'
       - run: poetry install
-      - run: invoke python.black
+      - run: poetry run invoke python.black
+  isort:
+    strategy:
+      matrix:
+        py-version:
+          - '3.9'
+          - '3.10'
+          - '3.11'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.py-version }}
+          cache: 'poetry'
+      - run: poetry install
+      - run: poetry run invoke python.isort
+  mypy:
+    strategy:
+      matrix:
+        py-version:
+          - '3.9'
+          - '3.10'
+          - '3.11'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.py-version }}
+          cache: 'poetry'
+      - run: poetry install
+      - run: poetry run invoke python.mypy
+  pylint:
+    strategy:
+      matrix:
+        py-version:
+          - '3.9'
+          - '3.10'
+          - '3.11'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.py-version }}
+          cache: 'poetry'
+      - run: poetry install
+      - run: poetry run invoke python.pylint
+  pytest:
+    strategy:
+      matrix:
+        py-version:
+          - '3.9'
+          - '3.10'
+          - '3.11'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.py-version }}
+          cache: 'poetry'
+      - run: poetry install
+      - run: poetry run invoke python.pytest
