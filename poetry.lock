@@ -369,8 +369,8 @@ multidict = ">=4.0"
 
 [metadata]
 lock-version = "1.1"
-python-versions = ">=3.9.0,<4.0"
-content-hash = "094ea43ab4f2f98a1a97494a0d82ca88c091d555d40849aabe085cdef290f354"
+python-versions = ">=3.8.0,<4.0"
+content-hash = "683e8f66689d777eb199796c255fee558a36069faa8ce4b9758259bf9821fc7f"
 
 [metadata.files]
 astroid = [
