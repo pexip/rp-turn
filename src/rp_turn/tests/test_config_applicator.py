@@ -1,6 +1,8 @@
 """
 Test the ReverseProxy Config Applicator
 """
+from __future__ import annotations
+
 import copy
 import logging
 from ipaddress import IPv4Interface

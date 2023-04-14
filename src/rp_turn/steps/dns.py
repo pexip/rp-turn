@@ -2,6 +2,8 @@
 Pexip installation wizard step to setup dns servers
 """
 
+from __future__ import annotations
+
 import logging
 from collections import defaultdict
 
