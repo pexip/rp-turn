@@ -4,6 +4,15 @@
   become_user: root
   ansible.builtin.pip:
     name: /run/rp-turn
+  when: ansible_distribution_release != 'bookworm'
+
+- name: Install rp_turn python application
+  become: yes
+  become_user: root
+  ansible.builtin.pip:
+    name: /run/rp-turn
+    extra_args: --break-system-packages
+  when: ansible_distribution_release == 'bookworm'
 
 - name: Install installwizard bash script
   become: yes

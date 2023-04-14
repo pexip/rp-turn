@@ -1,0 +1,39 @@
+name: Python
+
+on:
+  workflow_call:
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'poetry'
+      - run: poetry install
+      - run: poetry run invoke ansible.syntax
+
+  docker:
+    needs: syntax
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        base-os:
+          - debian-bookworm
+          - debian-bullseye
+          - ubuntu-focal
+          - ubuntu-jammy
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'poetry'
+      - run: poetry install
+      - run: poetry run invoke ansible.${{ matrix.base-os }}

@@ -8,5 +8,7 @@ on:
       - master
 
 jobs:
+  ansible:
+    uses: ./.github/workflows/ansible.yml
   python:
     uses: ./.github/workflows/python.yml

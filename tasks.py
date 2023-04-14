@@ -3,7 +3,7 @@ from pathlib import Path
 
 from invoke import Collection
 
-from buildtools import dev, debian, ubuntu, python, vmbuild
+from buildtools import ansible, dev, debian, ubuntu, python, vmbuild
 
 root = Path(__file__).parent.absolute()
 image_cache = root / ".cache" / "images"
@@ -19,7 +19,7 @@ vmbuild_out_dir = root
 os.makedirs(vmbuild_image_dir, exist_ok=True)
 os.makedirs(vmbuild_out_dir, exist_ok=True)
 
-namespace = Collection(dev, debian, ubuntu, python, vmbuild)
+namespace = Collection(ansible, dev, debian, ubuntu, python, vmbuild)
 namespace.configure(
     {
         "python": {"source": python_src},
