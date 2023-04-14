@@ -25,4 +25,4 @@ jobs:
           python-version: ${{ matrix.py-version }}
           cache: 'poetry'
       - run: poetry install
-      - run: poetry run invoke
+      - run: invoke python.black
