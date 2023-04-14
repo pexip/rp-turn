@@ -10,16 +10,18 @@ def setup_env(c):
 
 
 @task(setup_env)
-def isort(c, source=None):
+def isort(c, source=None, check=False):
     source = source or c.python.source
-    result = c.run(f"poetry run isort {source}")
+    check_str = "--check-only " if check else ""
+    result = c.run(f"poetry run isort {check_str}{source}")
     print(result)
 
 
 @task(setup_env)
-def black(c, source=None):
+def black(c, source=None, check=False):
     source = source or c.python.source
-    c.run(f"poetry run black {source}")
+    check_str = "--check " if check else ""
+    c.run(f"poetry run black {check_str}{source}")
 
 
 @task(setup_env)

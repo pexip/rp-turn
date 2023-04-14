@@ -1,6 +1,6 @@
 """ Base Step Types for InstallWizard """
 
-from __future__ import print_function
+from __future__ import annotations
 
 import logging
 import sys

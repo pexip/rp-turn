@@ -2,6 +2,8 @@
 Pexip installation wizard step to setup internal routes
 """
 
+from __future__ import annotations
+
 import logging
 from collections import defaultdict
 from ipaddress import IPv4Interface, IPv4Network

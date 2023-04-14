@@ -2,6 +2,8 @@
 Bunch of utils for the install wizard
 """
 
+from __future__ import annotations
+
 import logging
 import os
 import re
