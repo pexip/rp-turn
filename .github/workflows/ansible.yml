@@ -1,4 +1,4 @@
-name: Python
+name: Ansible
 
 on:
   workflow_call:
