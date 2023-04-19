@@ -10,5 +10,7 @@ on:
 jobs:
   ansible:
     uses: ./.github/workflows/ansible.yml
+  cloud-init:
+    uses: ./.github/workflows/cloud-init.yml
   python:
     uses: ./.github/workflows/python.yml
