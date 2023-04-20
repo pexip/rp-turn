@@ -5,7 +5,8 @@ FROM ${baseimage} as builder
 # prerequisites
 RUN apt-get update
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y ansible git sudo systemctl
-RUN useradd --create-home pexip
+RUN useradd --create-home pexip --groups sudo
+RUN passwd -d pexip
 
 # run ansible
 RUN --mount=type=bind,source=/,target=/run/rp-turn PYTHONUNBUFFERED=1 ansible-playbook /run/rp-turn/ansible.yml
