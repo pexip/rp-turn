@@ -5,7 +5,7 @@
   ansible.builtin.pip:
     name: /run/rp-turn
     virtualenv: /opt/rp-turn
-    virtualenv_command: python3 -m venv
+    virtualenv_command: /usr/bin/python3 -m venv
 
 - name: Install installwizard bash script
   become: yes
