@@ -1,6 +1,6 @@
 ---
 - name: Calculate numericversion
-  command: python3 -c "import rp_turn; print(rp_turn.__version__)"
+  command: /opt/rp-turn/bin/python3 -c "import rp_turn; print(rp_turn.__version__)"
   register: numericversion_command
 
 - name: Calculate pseudoversion

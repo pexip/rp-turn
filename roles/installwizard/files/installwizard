@@ -1,2 +1,2 @@
 #!/bin/sh
-sudo -E python3 -m rp_turn.installwizard "$@"
+sudo -E /opt/rp-turn/bin/python3 -m rp_turn.installwizard "$@"

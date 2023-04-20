@@ -3,6 +3,12 @@ from __future__ import annotations
 from invoke import task
 
 
+def docker_build(c, base_image, image_name):
+    image_tag_cmd = " "
+    if image_name:
+        image_tag_cmd = f" --tag {image_name} --load "
+    c.run(f"docker buildx build --pull --build-arg baseimage={base_image}{image_tag_cmd}{c.root_dir}")
+
 @task
 def syntax(c):
     """check the syntax of the ansible playbook files"""
@@ -10,31 +16,27 @@ def syntax(c):
 
 
 @task(syntax)
-def debian_bookworm(c):
+def debian_bookworm(c, image_name=None):
     """run ansible inside a container to validate the ansible config"""
-    baseimage = "debian:bookworm"
-    c.run(f"docker buildx build --build-arg baseimage={baseimage} {c.root_dir}")
+    docker_build(c, "debian:bookworm", image_name)
 
 
 @task(syntax)
-def debian_bullseye(c):
+def debian_bullseye(c, image_name=None):
     """run ansible inside a container to validate the ansible config"""
-    baseimage = "debian:bullseye"
-    c.run(f"docker buildx build --build-arg baseimage={baseimage} {c.root_dir}")
+    docker_build(c, "debian:bullseye", image_name)
 
 
 @task(syntax)
-def ubuntu_focal(c):
+def ubuntu_focal(c, image_name=None):
     """run ansible inside a container to validate the ansible config"""
-    baseimage = "ubuntu:20.04"
-    c.run(f"docker buildx build --build-arg baseimage={baseimage} {c.root_dir}")
+    docker_build(c, "ubuntu:20.04", image_name)
 
 
 @task(syntax)
-def ubuntu_jammy(c):
+def ubuntu_jammy(c, image_name=None):
     """run ansible inside a container to validate the ansible config"""
-    baseimage = "ubuntu:22.04"
-    c.run(f"docker buildx build --build-arg baseimage={baseimage} {c.root_dir}")
+    docker_build(c, "ubuntu:22.04", image_name)
 
 
 @task(ubuntu_jammy, debian_bookworm, ubuntu_focal, debian_bullseye, default=True)
