@@ -284,6 +284,31 @@ class TestInstallWizard(TestCase):
             saved_config=saved_config,
         )
 
+    @patch("subprocess.check_call")
+    @patch("rp_turn.platform.filewriter.HeadedFileWriter")
+    @patch("rp_turn.platform.filewriter.FileWriter")
+    def test_load_saved_config_skip_ui_valid(self, *_):
+        """Tests _load_saved_config with a valid JSON file"""
+        for saved_config in VALID_CONFIGS:
+            fake_out = StringIO()
+            sys.stdout = fake_out
+            wizard = get_installwizard(
+                verify_json=True,
+                skip_ui=True,
+                saved_config=saved_config,
+                nics=[("nic0", "00:11:22:33:44:55"), ("nic1", "11:22:33:44:55:66")],
+            )
+            wizard._load_saved_config = mock.Mock(return_value=saved_config)
+            exited = False
+            try:
+                wizard._apply_user_config()
+            except SystemExit:
+                exited = True
+            sys.stdout = sys.__stdout__
+            output = fake_out.getvalue().split("\n")
+            self.assertEqual(output, ["Applying configuration...", ""])
+            self.assertFalse(exited)
+
     def test_gather_user_input(self):
         """Tests _gather_user_input"""
         fake_out = StringIO()
