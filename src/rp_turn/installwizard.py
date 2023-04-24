@@ -73,6 +73,7 @@ class InstallWizard:
         self._config["first_run"] = first_run
 
         # Find all network interfaces
+        self.__nics: list[tuple[str, str]] | None = None  # caching
         nics = self._get_attached_nics()
 
         # Add nic dependent steps to the wizard
@@ -131,7 +132,7 @@ class InstallWizard:
         # If the saved_config was valid (i.e. was not changed by the steps), then I'll allow first_run to be False
         if not first_run and skip_ui:
             config_diff = self._config_diff(exit_on_invalid_json=verify_json)
-            if config_diff:
+            if any(config_diff):
                 DEV_LOGGER.info(
                     "first_run set to True as the config had differences: %s",
                     config_diff,
@@ -145,15 +146,16 @@ class InstallWizard:
             DEV_LOGGER.info("Adding CertificatesSteps")
             self._steps.append(certs_step)
         self._config["first_run"] = first_run
-        # self._steps = [steps.TurnServerStep()]  # TODO: REMOVE ME
 
-    @staticmethod
-    def _get_attached_nics() -> list[tuple[str, str]]:
+    def _get_attached_nics(self) -> list[tuple[str, str]]:
         """
         Gets the nic names and mac addresses of attached network interfaces
         Ignores the lo interface
         Prints error and exits if there are no NICs attached
         """
+        if self.__nics:
+            return self.__nics
+
         net_dir = "/sys/class/net/"
         interface_names = os.listdir(net_dir)
         if "lo" in interface_names:
@@ -180,6 +182,7 @@ class InstallWizard:
             """
             )
             sys.exit(1)
+        self.__nics = nics
         return nics
 
     def _load_saved_config(
@@ -296,12 +299,21 @@ class InstallWizard:
 
         # Find all the differences between the file and self._config
         differences = self._dict_diff([], saved_config, self._config)
+
         # Some differences are acceptable, so ignore those
         acceptable_differences = [["first_run"]]
+        for nic_name, _nic_mac in self._get_attached_nics():
+            # if a new nic is added to the box, but the config doesn't use it, then it doesn't need to be defined
+            if nic_name not in (
+                saved_config.get("external", None),
+                saved_config.get("internal", None),
+            ):
+                acceptable_differences.append(["networks", nic_name])
+
         return (
-            path_reason
-            for path_reason in differences
-            if path_reason[0] not in acceptable_differences
+            (path_reason, string_reason)
+            for path_reason, string_reason in differences
+            if path_reason not in acceptable_differences
         )
 
     def _apply_user_config(self) -> None:
@@ -309,7 +321,7 @@ class InstallWizard:
         if self._skip_ui:
             # We skipped the user input, so we need to check that the saved_config had all the required fields
             # And that it was not modified by a step (otherwise the user would be very confused).
-            differences = self._config_diff()
+            differences = list(self._config_diff())
             # If there are any differences left, print an error to the user
             if differences:
                 print(f"Config saved at {self._config_file_path} was invalid:")
