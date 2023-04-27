@@ -4,9 +4,6 @@
 Network interface name configurator.
 """
 
-# pylint: disable=unspecified-encoding
-
-
 from __future__ import annotations
 
 import argparse
@@ -17,7 +14,7 @@ import sys
 
 from rp_turn.platform import filewriter
 
-LOGGER = logging.getLogger("bootstrap.set_interface_names")
+LOGGER = logging.getLogger("rp_turn.platform.set_interface_names")
 
 
 class InterfaceMapper:  # pylint: disable=too-few-public-methods
