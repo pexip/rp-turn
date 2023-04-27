@@ -17,11 +17,7 @@
     mode: 0644
     owner: root
 
-- name: Enable set-interface-names service
+- name: Enable set-interface-names with symlink
   become: yes
   become_user: root
-  ansible.builtin.systemd:
-    name: set-interface-names
-    daemon_reload: true
-    enabled: true
-    masked: no
+  file: src=/lib/systemd/system/set-interface-names.service dest=/lib/systemd/system/sysinit.target.wants/set-interface-names.service owner=root group=root mode="0644" state=link

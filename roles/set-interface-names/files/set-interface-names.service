@@ -1,7 +1,7 @@
 [Unit]
 Description=Set network interface names
 DefaultDependencies=no
-After=local-fs.target cleanupgrade.service
+After=local-fs.target
 Before=network-pre.target
 Wants=network-pre.target
 
