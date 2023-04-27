@@ -4,7 +4,7 @@ FROM ${baseimage} as builder
 
 # prerequisites
 RUN apt-get update
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y ansible git sudo systemd
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y ansible git sudo systemctl
 RUN useradd --create-home pexip --groups sudo
 RUN passwd -d pexip
 
