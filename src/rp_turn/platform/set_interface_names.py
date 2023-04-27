@@ -4,6 +4,8 @@
 Network interface name configurator.
 """
 
+# pylint: disable=unspecified-encoding
+
 from __future__ import annotations
 
 import argparse
