@@ -21,7 +21,7 @@ from typing import Any, Callable, TypeVar
 
 from rp_turn.step_error import StepError
 
-DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
+DEV_LOGGER = logging.getLogger("rp_turn.installwizard")
 
 VALID_HOSTNAME_RE = re.compile(
     r"^([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\Z", re.IGNORECASE

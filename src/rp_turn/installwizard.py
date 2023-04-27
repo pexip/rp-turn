@@ -22,7 +22,7 @@ from typing import Any, Generator
 from rp_turn import steps, utils
 from rp_turn.config_applicator import ConfigApplicator
 
-DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
+DEV_LOGGER = logging.getLogger("rp_turn.installwizard")
 
 
 class InstallWizard:

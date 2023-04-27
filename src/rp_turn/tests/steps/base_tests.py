@@ -27,7 +27,7 @@ from rp_turn.tests.utils import (
     make_multi_cases,
 )
 
-DEV_LOGGER = logging.getLogger("developer.apps.metrics")
+DEV_LOGGER = logging.getLogger("rp_turn.tests")
 
 
 class QuestionUtils(TestCase):

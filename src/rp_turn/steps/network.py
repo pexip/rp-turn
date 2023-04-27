@@ -13,7 +13,7 @@ from rp_turn import utils
 from rp_turn.steps import Step
 from rp_turn.steps.routes import RoutesStep
 
-DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
+DEV_LOGGER = logging.getLogger("rp_turn.installwizard")
 
 
 class NetworkStep(Step):

@@ -10,7 +10,7 @@ from collections import defaultdict
 from rp_turn import utils
 from rp_turn.steps.base_step import Step, StepError
 
-DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
+DEV_LOGGER = logging.getLogger("rp_turn.installwizard")
 
 
 class HostnameStep(Step):

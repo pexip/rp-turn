@@ -14,7 +14,7 @@ import yaml
 # Local application/library specific imports
 from rp_turn import installwizard, utils
 
-DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
+DEV_LOGGER = logging.getLogger("rp_turn.tests")
 
 VALID_CONFIGS = [
     utils.make_nested_dict(

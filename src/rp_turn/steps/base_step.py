@@ -11,7 +11,7 @@ from typing import Any, Callable
 from rp_turn import utils
 from rp_turn.step_error import StepError
 
-DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
+DEV_LOGGER = logging.getLogger("rp_turn.installwizard")
 
 
 class Step:
