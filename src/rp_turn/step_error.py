@@ -2,7 +2,7 @@
 
 import logging
 
-DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
+DEV_LOGGER = logging.getLogger("rp_turn.installwizard")
 
 
 class StepError(Exception):

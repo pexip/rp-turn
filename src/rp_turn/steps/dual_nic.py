@@ -17,7 +17,7 @@ from rp_turn.steps.network import NetworkStep
 if TYPE_CHECKING:
     from rp_turn.installwizard import InstallWizard
 
-DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
+DEV_LOGGER = logging.getLogger("rp_turn.installwizard")
 
 
 class DualNicStep(Step):

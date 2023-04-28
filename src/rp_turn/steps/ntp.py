@@ -11,7 +11,7 @@ from ipaddress import IPv4Address
 from rp_turn import utils
 from rp_turn.steps.base_step import MultiStep, StepError
 
-DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
+DEV_LOGGER = logging.getLogger("rp_turn.installwizard")
 
 
 class NTPStep(MultiStep):

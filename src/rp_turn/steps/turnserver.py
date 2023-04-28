@@ -16,7 +16,7 @@ from passlib.utils import saslprep
 from rp_turn import utils
 from rp_turn.steps.base_step import MultiStep, Step, StepError
 
-DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
+DEV_LOGGER = logging.getLogger("rp_turn.installwizard")
 
 
 class TCPTurnStep(Step):

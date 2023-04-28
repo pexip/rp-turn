@@ -25,7 +25,7 @@ from rp_turn import installwizard, steps
 from rp_turn.tests import utils as test_utils
 from rp_turn.tests.test_config_applicator import VALID_CONFIGS
 
-DEV_LOGGER = logging.getLogger("developer.apps.reverseproxy")
+DEV_LOGGER = logging.getLogger("rp_turn.tests")
 
 
 def dummy_file_contents(open_mock, saved_config, nics):
