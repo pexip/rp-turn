@@ -32,12 +32,14 @@ class TestGetSignalingConfNode(tests.TestMultiQuestion, tests.TestMultiDefaultCo
         self._step = steps.SignalingConferenceNodeStep
         self._state_id = "conferencenodes"
         self._question = "_get_another_answer"
-        self._valid_cases = test_utils.VALID_IP_ADDRESSES
-        self._invalid_cases = (
-            test_utils.INVALID_IP_ADDRESSES
-            + test_utils.INVALID_DOMAINS
-            + test_utils.VALID_DOMAIN_NAMES
+        self._valid_cases = (
+            test_utils.VALID_IP_ADDRESSES + test_utils.VALID_DOMAIN_NAMES
         )
+        self._invalid_cases = (
+            test_utils.INVALID_IP_ADDRESSES + test_utils.INVALID_DOMAINS
+        )
+
+    # TODO: add test to ensure all values are of the same type
 
 
 class TestContentSecurityPolicy(tests.TestYesNoQuestion, tests.TestDefaultConfig):
