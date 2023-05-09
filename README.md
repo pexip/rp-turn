@@ -1,14 +1,14 @@
 # Pexip Reverse Proxy and TURN Server
 
-The usage documentation for this device is on the official pexip docs
-site: https://docs.pexip.com/admin/integrate_rpturn.htm
+The administration documentation for this device is available on
+[the official Pexip docs site](https://docs.pexip.com/admin/integrate_rpturn.htm).
 
 ## Building from source
 
-The general steps required for building involve picking an OS to base from, invoking cloud-init on the virtualization
-platform of your choice, and waiting for the virtual machine to shut itself down.
+A general overview for building include; picking an OS base, invoking cloud-init from the virtualization
+platform of your choice, and waiting for the virtual machine to boot, configure itself and shut itself down.
 
-Supported base operating systems:
+Supported and tested base operating systems:
 
 * Ubuntu
     * [22.04 LTS](https://cloud-images.ubuntu.com/jammy/current/)
@@ -19,9 +19,9 @@ Supported base operating systems:
     * [Bookworm](https://cloud.debian.org/images/cloud/bookworm/daily/latest/)
     * [Bullseye](https://cloud.debian.org/images/cloud/bullseye/daily/latest/)
 
-Each virtualization platform has a different way to create the virtual machine and configure it with cloud-init. The
-platforms listed below are linked to more specific documentation on how to do this. Other virtualization platforms may
-work too.
+Each cloud provider/virtualization platform has a unique method of creating a virtual machine and applying configuration
+with cloud-init. See the links listed below for specific documentation on this process for platforms we have tested.
+Other cloud providers/virtualization platforms may work too but have not yet been tested.
 
 * [VMware vSphere](docs/deploy/vmware-vsphere.md)
 * [Google Cloud](docs/deploy/google-cloud.md)
@@ -31,10 +31,10 @@ work too.
 ## Developer guide
 
 This part of the README is for those wishing to customize/improve the Pexip Reverse Proxy/TURN server. There are two
-parts to the repo, the python based installwizard and the Ansible + Cloud-init configuration. Depending on the change,
+parts to the repo, the Python based installwizard and the Ansible + Cloud-init configuration. Depending on the change,
 you may need to look at either one or both sections.
 
-### installwizard python application
+### installwizard Python application
 
 TODO
 
