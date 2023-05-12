@@ -22,8 +22,6 @@ server {
 {% endfor %}
     server_name {{fqdn}};
 
-    include /etc/nginx/includes/pex-rewrites.conf;
-
     ssl_certificate ssl/pexip.pem;
     ssl_certificate_key ssl/pexip.pem;
     ssl_session_timeout 5m;
@@ -41,7 +39,7 @@ server {
 
     proxy_ssl_server_name on;
 
-{% for location in ["", "api", "webapp", "webapp2", "static", "teams"] %}
+{% for location in ["", "api", "static"] %}
     location /{{location}} {
         proxy_pass https://pexip;
         proxy_http_version 1.1;
