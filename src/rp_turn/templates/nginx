@@ -75,16 +75,6 @@ server {
     }
 {% endfor %}
 
-    location /stats {
-        root /var/www;
-{% for mgmtnet in mgmtnets %}
-        allow {{mgmtnet}};
-{% endfor %}
-        deny all;
-        access_log /var/log/nginx/stats.access.log pexapplog;
-        error_log /var/log/nginx/stats.error.log;
-    }
-
 {% for fail_location in ["/404.html", "/50x.html"] %}
     location {{fail_location}} {
         root /var/www;
