@@ -287,8 +287,10 @@ class TestInstallWizard(TestCase):
     @patch("subprocess.check_call")
     @patch("rp_turn.platform.filewriter.HeadedFileWriter")
     @patch("rp_turn.platform.filewriter.FileWriter")
-    def test_load_saved_config_skip_ui_valid(self, *_):
+    @patch("os.path.exists")
+    def test_load_saved_config_skip_ui_valid(self, os_path_exists_mock, *_):
         """Tests _load_saved_config with a valid JSON file"""
+        os_path_exists_mock.return_value = False
         for saved_config in VALID_CONFIGS:
             fake_out = StringIO()
             sys.stdout = fake_out

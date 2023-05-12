@@ -97,6 +97,12 @@ class ConfigApplicator:
         netplan_filepath = "/etc/netplan/01-netcfg.yaml"
         filewriter.HeadedFileWriter(netplan_filepath).write(netcfg_yaml)
         DEV_LOGGER.info("Writing to %s: %s", netplan_filepath, netcfg_yaml)
+        # If a fallback cloud-init network config exists, delete it
+        if os.path.exists("/etc/netplan/50-cloud-init.yaml"):
+            DEV_LOGGER.info(
+                "cloud-init default config exists, removing so our new config takes it's place"
+            )
+            os.remove("/etc/netplan/50-cloud-init.yaml")
 
         # Write hostname file
         hostname = self._config["hostname"]

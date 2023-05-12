@@ -194,11 +194,16 @@ class TestDefaultSettings(TestCase):
         self._applicator = None
         self._function = None
 
+    @patch("os.path.exists")
     @patch("subprocess.check_call")
     @patch("rp_turn.platform.filewriter.HeadedFileWriter")
     @patch("rp_turn.platform.filewriter.FileWriter")
     def _run_settings_applied_test(
-        self, filewriter_mock, headed_filewriter_mock, subprocess_mock
+        self,
+        filewriter_mock,
+        headed_filewriter_mock,
+        subprocess_mock,
+        os_path_exists_mock,
     ):
         """Runs the settings applied test"""
         self._applicator = installwizard.ConfigApplicator(self._config)
@@ -212,6 +217,9 @@ class TestDefaultSettings(TestCase):
         filewriter_mock.side_effect = DummyFileWriter
         headed_filewriter_mock.side_effect = DummyFileWriter
         subprocess_mock.side_effect = mock_check_call
+        os_path_exists_mock.side_effect = (
+            lambda path: path in TestDefaultSettings.DummyFileSystem
+        )
         self._function()
         self.is_settings_valid()
 
@@ -274,6 +282,52 @@ class TestBaseNetworkSettings(TestDefaultSettings):
         self.assertIn(
             self._config["domain"], TestDefaultSettings.DummyFileSystem["/etc/hosts"]
         )
+
+    @patch("os.remove")
+    @patch("os.path.exists")
+    @patch("subprocess.check_call")
+    @patch("rp_turn.platform.filewriter.HeadedFileWriter")
+    @patch("rp_turn.platform.filewriter.FileWriter")
+    def test_remove_cloud_init_fallback(
+        self,
+        _filewriter_mock,
+        _headed_filewriter_mock,
+        _subprocess_mock,
+        os_path_exists_mock,
+        os_remove_mock,
+    ):
+        """Test removal of cloud-init fallback network config if it exists"""
+        config = utils.make_nested_dict(
+            {
+                "networks": {
+                    "nic0": {
+                        "ipaddress": "10.44.4.1",
+                        "netmask": "255.255.0.0",
+                        "gateway": "10.44.0.1",
+                        "routes": [],
+                    }
+                },
+                "internal": "nic0",
+                "external": "nic0",
+                "dns": ["8.8.8.8", "1.1.1.1"],
+                "hostname": "reverseproxy",
+                "domain": "rd.pexip.com",
+            }
+        )
+        applicator = installwizard.ConfigApplicator(config)
+
+        # Fallback exists
+        os_path_exists_mock.return_value = True
+        applicator._apply_base_network_config()  # pylint: disable=protected-access
+        os_remove_mock.assert_called_once_with("/etc/netplan/50-cloud-init.yaml")
+
+        os_path_exists_mock.reset_mock()
+        os_remove_mock.reset_mock()
+
+        # Fallback doesn't exist
+        os_path_exists_mock.return_value = False
+        applicator._apply_base_network_config()  # pylint: disable=protected-access
+        os_remove_mock.assert_not_called()
 
 
 class TestNtpServerSettings(TestDefaultSettings):
