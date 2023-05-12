@@ -43,7 +43,6 @@
     owner: root
   with_list:
     - { src: nginx.conf, dest: /etc/nginx/nginx.conf }
-    - { src: pex-rewrites.conf, dest: /etc/nginx/includes/pex-rewrites.conf }
     - { src: pexlog-filtered, dest: /etc/nginx/sites-available/pexlog-filtered }
     - { src: www, dest: /var }
 

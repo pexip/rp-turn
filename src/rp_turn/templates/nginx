@@ -22,8 +22,6 @@ server {
 {% endfor %}
     server_name {{fqdn}};
 
-    include /etc/nginx/includes/pex-rewrites.conf;
-
     ssl_certificate ssl/pexip.pem;
     ssl_certificate_key ssl/pexip.pem;
     ssl_session_timeout 5m;
@@ -39,22 +37,16 @@ server {
     error_page 404 /404.html;
     error_page 500 502 503 504 /50x.html;
 
-    # Redirect from web root to /webapp
-    location / {
-        return 301 /webapp$is_args$args;
-    }
-
     proxy_ssl_server_name on;
 
-{% for location in ["/api", "/webapp", "/static", "/teams"] %}
-{% set logfile = location.split("/")[-1] %}
-    location {{location}} {
+{% for location in ["", "api", "static"] %}
+    location /{{location}} {
         proxy_pass https://pexip;
         proxy_http_version 1.1;
         proxy_set_header Connection "";
         proxy_set_header Host $host;
         proxy_redirect off;
-  {%if location == "/api"%}
+  {% if location == "api" %}
         proxy_connect_timeout 20s;
   {% else %}
         proxy_connect_timeout 3s;
@@ -62,14 +54,20 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream http_500 http_502 http_503 http_504 error timeout non_idempotent;
-        access_log /var/log/nginx/{{logfile}}.access.log pexapplog;
-        error_log /var/log/nginx/{{logfile}}.error.log;
+
+  {% if location == "" %}
+        access_log /var/log/nginx/access.log pexapplog;
+        error_log /var/log/nginx/error.log;
+  {% else %}
+        access_log /var/log/nginx/{{location}}.access.log pexapplog;
+        error_log /var/log/nginx/{{location}}.error.log;
+  {% endif %}
 
         # Create separate error pages for each location so that the log message ends up in the right file.
-        error_page 404 {{location}}/404.html;
-        error_page 500 502 503 504 {{location}}/50x.html;
+        error_page 404 /{{location}}/404.html;
+        error_page 500 502 503 504 /{{location}}/50x.html;
   {% for fail_location in ["404.html", "50x.html"] %}
-        location {{location}}/{{fail_location}} {
+        location /{{location}}/{{fail_location}} {
             internal;
             alias /var/www/{{fail_location}};
         }
