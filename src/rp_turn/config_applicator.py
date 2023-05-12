@@ -76,9 +76,13 @@ class ConfigApplicator:
                 ],
                 "nameservers": {"addresses": utils.config_get(self._config["dns"])},
             }
+
+            # Note: Installwizard only permits routes OR gateway on an interface
             # Only add gateway if it exists
             if utils.config_get(network["gateway"]) not in [None, ""]:
-                netplan["network"]["ethernets"][nic]["gateway4"] = network["gateway"]
+                netplan["network"]["ethernets"][nic]["routes"] = [
+                    {"to": "default", "via": network["gateway"]}
+                ]
             # Only add routes if it exists
             if utils.config_get(network["routes"]) not in [None, []]:
                 netplan["network"]["ethernets"][nic]["routes"] = [

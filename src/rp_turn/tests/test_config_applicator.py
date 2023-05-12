@@ -68,8 +68,7 @@ VALID_CONFIGS = [
                 "nic0": {
                     "ipaddress": "10.44.4.1",
                     "netmask": "255.255.0.0",
-                    "gateway": "10.44.0.1",
-                    "routes": [],
+                    "routes": [{"to": "10.45.0.0/16", "via": "10.44.0.1"}],
                 },
                 "nic1": {
                     "ipaddress": "10.250.4.1",
@@ -112,7 +111,6 @@ VALID_CONFIGS = [
                 "nic0": {
                     "ipaddress": "10.44.4.1",
                     "netmask": "255.255.0.0",
-                    "gateway": "10.44.0.1",
                     "routes": [],
                 },
                 "nic1": {
@@ -270,7 +268,13 @@ class TestBaseNetworkSettings(TestDefaultSettings):
                     )
                 ],
             )
-            self.assertEqual(nic["gateway4"], adapter["gateway"])
+            # Installwizard only permits routes OR gateway on an interface
+            if adapter["gateway"]:
+                self.assertEqual(
+                    nic["routes"], [{"to": "default", "via": adapter["gateway"]}]
+                )
+            elif adapter["routes"]:
+                self.assertEqual(nic["routes"], adapter["routes"])
             self.assertEqual(nic["nameservers"]["addresses"], self._config["dns"])
         self.assertIn(
             self._config["hostname"],
