@@ -262,7 +262,9 @@ class TestBaseNetworkSettings(TestDefaultSettings):
             )
             # Installwizard only permits routes OR gateway on an interface
             if adapter["gateway"]:
-                self.assertEqual(nic["routes"], [{"to": "default", "via": adapter["gateway"]}])
+                self.assertEqual(
+                    nic["routes"], [{"to": "default", "via": adapter["gateway"]}]
+                )
             elif adapter["routes"]:
                 self.assertEqual(nic["routes"], adapter["routes"])
             self.assertEqual(nic["nameservers"]["addresses"], self._config["dns"])
