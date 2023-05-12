@@ -7,7 +7,6 @@
     - role: apt
     - role: fail2ban
     - role: nginx
-    - role: munin
     - role: set-interface-names
     - role: installwizard
     - role: security
