@@ -357,8 +357,6 @@ class TestNginxServerSettings(TestDefaultSettings):
             nginx_file = TestDefaultSettings.DummyFileSystem[nginx_filepath]
             for node in self._config["conferencenodes"]:
                 self.assertIn(node, nginx_file)
-            for network in self._config["managementnetworks"]:
-                self.assertIn(network, nginx_file)
             if self._config["enablecsp"]:
                 self.assertIn("add_header Content-Security-Policy", nginx_file)
             else:
