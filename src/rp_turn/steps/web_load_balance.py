@@ -76,7 +76,11 @@ class SignalingConferenceNodeStep(MultiStep):
         """Explain difference between FQDN and IP addresses"""
         self.display(
             """\
-<enter some text here>
+The reverse proxy can be configured to relay to either FQDNs or IP addresses.
+If FQDNs are used, the upstream TLS certificates will be verified.
+If IP addresses are used, the transport will still be HTTPS, but the certificates will NOT be verified.
+
+Enter in either FQDNs or IP addresses
 """
         )
 
@@ -100,6 +104,9 @@ class SignalingConferenceNodeStep(MultiStep):
         parsed_ip: IPv4Address = utils.validate_ip(response)
         self._address_type = AddressType.IP_ADDRESS
         return parsed_ip
+
+    def _final_step(self, config: defaultdict) -> None:
+        config["validate_upstream_tls"] = self._address_type == AddressType.FQDN
 
     def default_config(self, saved_config: defaultdict, config: defaultdict) -> None:
         DEV_LOGGER.info("Getting from saved_config: conferencenodes")
