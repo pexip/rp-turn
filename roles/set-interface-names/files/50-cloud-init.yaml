@@ -1,0 +1,7 @@
+# This file should be replaced by cloud-init
+# It is provided for instances with no cloud-init datasource
+network:
+    ethernets:
+        nic0:
+            dhcp4: true
+    version: 2
