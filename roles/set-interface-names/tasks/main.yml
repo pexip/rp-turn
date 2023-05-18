@@ -25,3 +25,12 @@
     daemon_reload: true
     enabled: true
     masked: no
+
+- name: Install default netplan
+  become: yes
+  become_user: root
+  copy:
+    src: 50-cloud-init.yaml
+    dest: /etc/netplan
+    mode: 0644
+    owner: root
