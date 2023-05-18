@@ -106,7 +106,7 @@ Enter in either FQDNs or IP addresses
         return parsed_ip
 
     def _final_step(self, config: defaultdict) -> None:
-        config["validate_upstream_tls"] = self._address_type == AddressType.FQDN
+        config["verify_upstream_tls"] = self._address_type == AddressType.FQDN
 
     def default_config(self, saved_config: defaultdict, config: defaultdict) -> None:
         DEV_LOGGER.info("Getting from saved_config: conferencenodes")

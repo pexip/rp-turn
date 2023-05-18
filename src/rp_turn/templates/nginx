@@ -54,6 +54,12 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream http_500 http_502 http_503 http_504 error timeout non_idempotent;
+  {% if verify_upstream_tls %}
+        # Verify upstream TLS server certificate
+        proxy_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
+        proxy_ssl_verify_depth 5;
+        proxy_ssl_verify on;
+  {% endif %}
 
   {% if location == "" %}
         access_log /var/log/nginx/access.log pexapplog;

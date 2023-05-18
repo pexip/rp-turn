@@ -147,6 +147,7 @@ class ConfigApplicator:
             fqdn = self.fqdn()
             enablecsp = self._config["enablecsp"]
             mgmtnets = self._config["managementnetworks"]
+            verify_upstream_tls = self._config["verify_upstream_tls"]
 
             template = self._template_env.get_template("nginx")
             nginx_config = template.render(
@@ -155,6 +156,7 @@ class ConfigApplicator:
                 mgmtnets=mgmtnets,
                 fqdn=fqdn,
                 enablecsp=enablecsp,
+                verify_upstream_tls=verify_upstream_tls,
             )
             nginx_filepath = "/etc/nginx/sites-available/pexapp"
             filewriter.FileWriter("/etc/nginx/sites-available/pexapp").write(

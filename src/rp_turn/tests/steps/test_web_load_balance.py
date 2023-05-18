@@ -48,7 +48,7 @@ class TestGetSignalingConfNodeIPAddress(
         self, step: base_step.Step, config: defaultdict, success: bool
     ) -> None:
         if success and self._testMethodName != "test_default_config_valid_cases":
-            self.assertIs(config["validate_upstream_tls"], False)
+            self.assertIs(config["verify_upstream_tls"], False)
 
     def make_step(self) -> steps.SignalingConferenceNodeStep:
         """Make the step and force IP addresses"""
@@ -77,11 +77,11 @@ class TestGetSignalingConfNodeFQDNs(
         self, step: base_step.Step, config: defaultdict, success: bool
     ) -> None:
         if success and self._testMethodName != "test_default_config_valid_cases":
-            self.assertIs(config["validate_upstream_tls"], True)
+            self.assertIs(config["verify_upstream_tls"], True)
         else:
             # either step wasn't successful, or it's loading the default_config
-            # validate_upstream_tls must not be defined in the config
-            self.assertNotIn("validate_upstream_tls", config)
+            # verify_upstream_tls must not be defined in the config
+            self.assertNotIn("verify_upstream_tls", config)
 
     def make_step(self) -> steps.SignalingConferenceNodeStep:
         """Make the step and force FQDNs"""
