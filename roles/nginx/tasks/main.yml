@@ -45,22 +45,9 @@
   with_list:
     - { src: nginx.conf, dest: /etc/nginx/nginx.conf }
     - { src: proxy-defaults.conf, dest: /etc/nginx/snippets/proxy-defaults.conf }
-    - { src: pexlog-filtered, dest: /etc/nginx/sites-available/pexlog-filtered }
+    - { src: logging.conf, dest: /etc/nginx/conf.d/logging.conf }
     - { src: cleanup-sockets.conf, dest: /lib/systemd/system/nginx.service.d/cleanup-sockets.conf }
     - { src: www, dest: /var }
-
-- name: Create sites-enabled symlink to pexlog-filtered
-  become: yes
-  become_user: root
-  file:
-    src: /etc/nginx/sites-available/pexlog-filtered
-    dest: /etc/nginx/sites-enabled/pexlog-filtered
-    owner: root
-    group: root
-    mode: 0644
-    state: link
-    force: yes
-    follow: false
 
 # Checks whether /etc/nginx/nginx.conf is valid (warning: this fails if run after creating the symlink)
 - name: Re-start nginx
