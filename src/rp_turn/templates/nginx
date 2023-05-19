@@ -1,16 +1,39 @@
+{% if verify_upstream_tls %}
+# Loopback servers for TLS verify
+  {%- for node in confnodes %}
+server {
+    listen unix:/run/nginx-upstream-{{node}}.sock;
+    include snippets/proxy-defaults.conf;
+
+    # Verify upstream TLS server certificate
+    proxy_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
+    proxy_ssl_verify_depth 5;
+    proxy_ssl_verify on;
+
+    location / {
+        proxy_pass https://{{node}}:443;
+    }
+}
+  {%- endfor %}
+{% endif %}
+
 # Upstream servers
 upstream pexip {
     ip_hash;
-{% for node in confnodes %}
+  {%- for node in confnodes %}
+    {% if verify_upstream_tls %}
+    server unix:/run/nginx-upstream-{{node}}.sock weight=1 max_fails=0;
+    {% else %}
     server {{node}}:443 weight=1 max_fails=0;
-{% endfor %}
+    {% endif %}
+  {% endfor %}
     keepalive 1024;
 }
 
 # Redirect HTTP to HTTPS
 server {
 {% for address in addresses %}
-    listen {{address}}:80;
+    listen {{address}}:80 default_server;
 {% endfor %}
     server_name {{fqdn}};
     return 301 https://$host$request_uri;
@@ -18,7 +41,7 @@ server {
 
 server {
 {% for address in addresses %}
-    listen {{address}}:443 ssl;
+    listen {{address}}:443 ssl http2 default_server;
 {% endfor %}
     server_name {{fqdn}};
 
@@ -37,34 +60,15 @@ server {
     error_page 404 /404.html;
     error_page 500 502 503 504 /50x.html;
 
-    proxy_ssl_server_name on;
+    include snippets/proxy-defaults.conf;
 
 {% for location in ["", "api", "static"] %}
     location /{{location}} {
         proxy_pass https://pexip;
-        proxy_http_version 1.1;
-        proxy_set_header Connection "";
-        proxy_set_header Host $host;
-        proxy_redirect off;
   {% if location == "api" %}
         proxy_connect_timeout 20s;
-  {% else %}
-        proxy_connect_timeout 3s;
   {% endif %}
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream http_500 http_502 http_503 http_504 error timeout non_idempotent;
-  {% if verify_upstream_tls %}
-        # Verify upstream TLS server certificate
-        proxy_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
-        proxy_ssl_verify_depth 5;
-        proxy_ssl_verify on;
-  {% endif %}
-
-  {% if location == "" %}
-        access_log /var/log/nginx/access.log pexapplog;
-        error_log /var/log/nginx/error.log;
-  {% else %}
+  {% if location != "" %}
         access_log /var/log/nginx/{{location}}.access.log pexapplog;
         error_log /var/log/nginx/{{location}}.error.log;
   {% endif %}
