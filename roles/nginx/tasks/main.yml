@@ -32,6 +32,7 @@
     - /etc/nginx/includes
     - /etc/nginx/sites-available
     - /etc/nginx/sites-enabled
+    - /lib/systemd/system/nginx.service.d
 
 - name: Install nginx configuration
   become: yes
@@ -45,6 +46,7 @@
     - { src: nginx.conf, dest: /etc/nginx/nginx.conf }
     - { src: proxy-defaults.conf, dest: /etc/nginx/snippets/proxy-defaults.conf }
     - { src: pexlog-filtered, dest: /etc/nginx/sites-available/pexlog-filtered }
+    - { src: cleanup-sockets.conf, dest: /lib/systemd/system/nginx.service.d/cleanup-sockets.conf }
     - { src: www, dest: /var }
 
 - name: Create sites-enabled symlink to pexlog-filtered
