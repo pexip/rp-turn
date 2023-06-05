@@ -1,14 +1,12 @@
 """
 Test the ReverseProxy InstallWizard
 """
-from __future__ import annotations
 
 import copy
 
 # Standard library imports
 import logging
 import sys
-from collections import defaultdict
 from functools import partial
 from io import StringIO
 
@@ -16,9 +14,9 @@ from io import StringIO
 from unittest import SkipTest, TestCase, mock
 
 # Local application/library specific imports
+import rp_turn.steps.base_step
 from rp_turn import utils
 from rp_turn.step_error import StepError
-from rp_turn.steps import base_step
 from rp_turn.tests import utils as test_utils
 from rp_turn.tests.utils import (
     INVALID_YESNO_CASES,
@@ -38,7 +36,7 @@ class QuestionUtils(TestCase):
     """
 
     def setUp(self):
-        self._step = partial(base_step.Step, "DummyQuestionUtils")
+        self._step = partial(rp_turn.steps.base_step.Step, "DummyQuestionUtils")
         self._state_id = None
         self._question = None
         self._valid_cases = []
@@ -92,17 +90,12 @@ class QuestionUtils(TestCase):
         """Returns a list of question names"""
         return [question.__name__ for question in step.questions]
 
-    def validate_additional_config(
-        self, step: base_step.Step, config: defaultdict, success: bool
-    ) -> None:
-        """Called at the end of the step where config should be valid"""
-
 
 class TestQuestion(QuestionUtils):
     """Base case to test a question"""
 
     def setUp(self):
-        self._step = partial(base_step.Step, "DummyStep")
+        self._step = partial(rp_turn.steps.base_step.Step, "DummyStep")
         self._state_id = None
         self._question = None
         self._valid_cases = []
@@ -118,7 +111,6 @@ class TestQuestion(QuestionUtils):
             question, config, step = self.setup_question(case)
             question(config)
             self.is_valid(step, config, case)
-            self.validate_additional_config(step, config, True)
 
     def test_valid_cases_with_padding(self):
         """Tests valid cases with padding"""
@@ -127,20 +119,17 @@ class TestQuestion(QuestionUtils):
             question, config, step = self.setup_question(padded_case)
             question(config)
             self.is_valid(step, config, case)
-            self.validate_additional_config(step, config, True)
 
     def test_default_empty(self):
         """Tests when user just presses enter"""
-        question, config, step = self.setup_question("")
+        question, config, _ = self.setup_question("")
         self.assertRaises(StepError, question, config)
-        self.validate_additional_config(step, config, False)
 
     def test_invalid_cases(self):
         """Tests invalid cases"""
         for case in self._invalid_cases:
-            question, config, step = self.setup_question(case)
+            question, config, _ = self.setup_question(case)
             self.assertRaises(StepError, question, config)
-            self.validate_additional_config(step, config, False)
 
 
 class TestMultiQuestion(TestQuestion):
@@ -148,7 +137,9 @@ class TestMultiQuestion(TestQuestion):
 
     def setUp(self):
         self._state_id = None
-        self._step = partial(base_step.MultiStep, "DummyStep", self._state_id)
+        self._step = partial(
+            rp_turn.steps.base_step.MultiStep, "DummyStep", self._state_id
+        )
         self._question = "_get_another_answer"
         self._valid_cases = []
         self._invalid_cases = []
@@ -174,7 +165,6 @@ class TestMultiQuestion(TestQuestion):
         stdout = fake_out.getvalue().split("\n")
         for value in default_values:
             self.assertIn("  - " + str(value), stdout)
-        self.validate_additional_config(step, config, True)
 
     def test_invalid_cases_after_valid_cases(self):
         """Tests that an invalid case is not accepted after a list of valid cases"""
@@ -189,7 +179,6 @@ class TestMultiQuestion(TestQuestion):
                     question(config)
                 step.ask = mock.Mock(return_value=invalid_case)
                 self.assertRaises(StepError, question, config)
-                self.validate_additional_config(step, config, False)
 
     def test_valid_cases(self):
         valid_multi_cases = make_multi_cases(self._valid_cases, 3)
@@ -205,7 +194,6 @@ class TestMultiQuestion(TestQuestion):
             question(config)
             # Verify config is added
             self.assertEqual(set(self.get_config_value(config)), set(case))
-            self.validate_additional_config(step, config, True)
 
     def test_valid_cases_singular(self):
         """Tests MultiStep with one case only"""
@@ -217,7 +205,6 @@ class TestMultiQuestion(TestQuestion):
             question(config)
             # Verify config is added
             self.assertEqual(self.get_config_value(config), [case])
-            self.validate_additional_config(step, config, True)
 
     def test_valid_cases_with_padding(self):
         valid_multi_cases = make_multi_cases(self._valid_cases, 3)
@@ -232,7 +219,6 @@ class TestMultiQuestion(TestQuestion):
             question(config)
             # Verify config is added
             self.assertEqual(set(self.get_config_value(config)), set(case))
-            self.validate_additional_config(step, config, True)
 
     def test_valid_cases_singular_with_padding(self):
         """Tests MultiStep with padding and one case only"""
@@ -245,14 +231,13 @@ class TestMultiQuestion(TestQuestion):
             question(config)
             # Verify config is added
             self.assertEqual(self.get_config_value(config), [case])
-            self.validate_additional_config(step, config, True)
 
 
 class TestYesNoQuestion(QuestionUtils):
     """Base class to test a yes/no question"""
 
     def setUp(self):
-        self._step = partial(base_step.Step, "DummyStep")
+        self._step = partial(rp_turn.steps.base_step.Step, "DummyStep")
         self._state_id = None
         self._question = None
         self._invalid_cases = (
@@ -272,7 +257,6 @@ class TestYesNoQuestion(QuestionUtils):
             question, config, step = self.setup_question(case)
             question(config)
             self.is_valid(step, config, True)
-            self.validate_additional_config(step, config, True)
 
     def test_valid_false_cases(self):
         """Tests false cases"""
@@ -280,14 +264,13 @@ class TestYesNoQuestion(QuestionUtils):
             question, config, step = self.setup_question(case)
             question(config)
             self.is_valid(step, config, False)
-            self.validate_additional_config(step, config, True)
 
 
 class TestDefaultConfig(QuestionUtils):
     """Base class to test the default_config method"""
 
     def setUp(self):
-        self._step = partial(base_step.Step, "DummyStep")
+        self._step = partial(rp_turn.steps.base_step.Step, "DummyStep")
         self._state_id = None
         self._saved_state_id = None
         self._saved_config = utils.nested_dict()
@@ -300,14 +283,15 @@ class TestDefaultConfig(QuestionUtils):
         if self._saved_state_id is None:
             self._saved_state_id = self._state_id
         for case in self._valid_cases:
-            default_config, config, step = self.setup_question(
+            default_config, config, _ = self.setup_question(
                 None, question_str=self._question_default_config
             )
             saved_config = utils.make_nested_dict(self._saved_config)
             utils.set_config_value_by_path(saved_config, self._saved_state_id, case)
             default_config(saved_config, config)
-            self.assertEqual(self.get_config_value(config), case)
-            self.validate_additional_config(step, config, True)
+            self.assertEqual(
+                utils.get_config_value_by_path(config, self._state_id), case
+            )
 
     def test_default_config_invalid_cases(self):
         """
@@ -318,14 +302,15 @@ class TestDefaultConfig(QuestionUtils):
         if self._saved_state_id is None:
             self._saved_state_id = self._state_id
         for case in self._invalid_cases:
-            default_config, config, step = self.setup_question(
+            default_config, config, _ = self.setup_question(
                 None, question_str=self._question_default_config
             )
             saved_config = utils.make_nested_dict(self._saved_config)
             utils.set_config_value_by_path(saved_config, self._saved_state_id, case)
             default_config(saved_config, config)
-            self.assertNotEqual(self.get_config_value(config), case)
-            self.validate_additional_config(step, config, False)
+            self.assertNotEqual(
+                utils.get_config_value_by_path(config, self._state_id), case
+            )
 
 
 class TestMultiDefaultConfig(TestDefaultConfig):

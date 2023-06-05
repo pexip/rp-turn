@@ -1,18 +1,13 @@
 """
 Tests the Web Load Balance Step from the installwizard
 """
-from __future__ import annotations
-
-from collections import defaultdict
 
 # Import steps and default cases
 import rp_turn.tests.steps as tests
 
 # Local application/library specific imports
 import rp_turn.tests.utils as test_utils
-from rp_turn import steps, utils
-from rp_turn.steps import base_step
-from rp_turn.steps.web_load_balance import AddressType
+from rp_turn import steps
 
 
 class TestEnableWebLoadBalance(tests.TestYesNoQuestion, tests.TestDefaultConfig):
@@ -28,15 +23,13 @@ class TestEnableWebLoadBalance(tests.TestYesNoQuestion, tests.TestDefaultConfig)
         self._invalid_cases = test_utils.VALID_IP_ADDRESSES + test_utils.VALID_HOSTNAMES
 
 
-class TestGetSignalingConfNodeIPAddress(
-    tests.TestMultiQuestion, tests.TestMultiDefaultConfig
-):
-    """Test the SignalingConferenceNodeStep with IP addresses"""
+class TestGetSignalingConfNode(tests.TestMultiQuestion, tests.TestMultiDefaultConfig):
+    """Test the SignalingConferenceNodeStep"""
 
     def setUp(self):
         tests.TestMultiQuestion.setUp(self)
         tests.TestMultiDefaultConfig.setUp(self)
-        self._step = self.make_step
+        self._step = steps.SignalingConferenceNodeStep
         self._state_id = "conferencenodes"
         self._question = "_get_another_answer"
         self._valid_cases = test_utils.VALID_IP_ADDRESSES
@@ -45,66 +38,6 @@ class TestGetSignalingConfNodeIPAddress(
             + test_utils.INVALID_DOMAINS
             + test_utils.VALID_DOMAIN_NAMES
         )
-
-    def validate_additional_config(
-        self, step: base_step.Step, config: defaultdict, success: bool
-    ) -> None:
-        if success and self._testMethodName != "test_default_config_valid_cases":
-            self.assertIs(config["verify_upstream_tls"], False)
-        else:
-            # either step wasn't successful, or it's loading the default_config
-            # verify_upstream_tls must not be defined in the config
-            self.assertNotIn("verify_upstream_tls", config)
-
-    def make_step(self) -> steps.SignalingConferenceNodeStep:
-        """Make the step and force IP addresses"""
-        step = steps.SignalingConferenceNodeStep()
-        step._address_type = AddressType.IP_ADDRESS  # pylint: disable=protected-access
-        return step
-
-    def test_default_values_same_type(self):
-        """Tests that the default values are only used if they are of the same type"""
-        step = steps.SignalingConferenceNodeStep()
-        saved_config = utils.nested_dict()
-        config = utils.nested_dict()
-        saved_config["conferencenodes"] = [
-            test_utils.VALID_DOMAIN_NAMES[0],
-            test_utils.VALID_IP_ADDRESSES[0],
-        ]
-        step.default_config(saved_config, config)
-        self.assertIs(config["conferencenodes"], None)
-        self.assertIs(step._address_type, None)  # pylint: disable=protected-access
-
-
-class TestGetSignalingConfNodeFQDNs(
-    tests.TestMultiQuestion, tests.TestMultiDefaultConfig
-):
-    """Test the SignalingConferenceNodeStep with IP addresses"""
-
-    def setUp(self):
-        tests.TestMultiQuestion.setUp(self)
-        tests.TestMultiDefaultConfig.setUp(self)
-        self._step = self.make_step
-        self._state_id = "conferencenodes"
-        self._question = "_get_another_answer"
-        self._valid_cases = test_utils.VALID_DOMAIN_NAMES
-        self._invalid_cases = test_utils.VALID_IP_ADDRESSES + test_utils.INVALID_DOMAINS
-
-    def validate_additional_config(
-        self, step: base_step.Step, config: defaultdict, success: bool
-    ) -> None:
-        if success and self._testMethodName != "test_default_config_valid_cases":
-            self.assertIs(config["verify_upstream_tls"], True)
-        else:
-            # either step wasn't successful, or it's loading the default_config
-            # verify_upstream_tls must not be defined in the config
-            self.assertNotIn("verify_upstream_tls", config)
-
-    def make_step(self) -> steps.SignalingConferenceNodeStep:
-        """Make the step and force FQDNs"""
-        step = steps.SignalingConferenceNodeStep()
-        step._address_type = AddressType.FQDN  # pylint: disable=protected-access
-        return step
 
 
 class TestContentSecurityPolicy(tests.TestYesNoQuestion, tests.TestDefaultConfig):
