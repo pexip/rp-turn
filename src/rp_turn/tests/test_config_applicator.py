@@ -258,6 +258,7 @@ class TestBaseNetworkSettings(TestDefaultSettings):
             nic = netplan_yaml["network"]["ethernets"][nic_name]
             self.assertFalse(nic["dhcp4"])
             self.assertFalse(nic["dhcp6"])
+            self.assertEqual(nic["link-local"], [])
             self.assertEqual(
                 nic["addresses"],
                 [
