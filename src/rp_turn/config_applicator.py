@@ -67,6 +67,7 @@ class ConfigApplicator:
             netplan["network"]["ethernets"][nic] = {
                 "dhcp4": False,
                 "dhcp6": False,
+                "link-local": [],
                 "addresses": [
                     str(
                         IPv4Interface(
