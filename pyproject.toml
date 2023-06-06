@@ -2,7 +2,7 @@
 name = "rp-turn"
 version = "7.0.0"
 description = "Pexip Reverse Proxy and Turn Server installwizard"
-authors = ["Michael Oultram <michael.oultram@pexip.com>"]
+authors = ["Pexip R&D <rd@pexip.com>"]
 license = "BSD-3-Clause"
 readme = "README.md"
 packages = [{ include = "rp_turn", from = "src" }]
