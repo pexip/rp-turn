@@ -38,5 +38,5 @@
   copy:
     src: LICENSE
     dest: /home/pexip/LICENSE
-    mode: 644
+    mode: 0644
     owner: pexip
