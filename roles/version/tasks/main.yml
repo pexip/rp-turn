@@ -33,3 +33,10 @@
     dest: /etc/update-motd.d/
     mode: 0755
     owner: root
+
+- name: Copy RP Turn license
+  copy:
+    src: LICENSE
+    dest: /home/pexip/LICENSE
+    mode: 0644
+    owner: pexip
