@@ -1,4 +1,16 @@
 ---
+- name: Create directories
+  become: yes
+  become_user: root
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+    owner: root
+    group: root
+  with_list:
+    - /lib/systemd/system/coturn.service.d
+
 - name: Install security configuration
   become: yes
   become_user: root
@@ -14,6 +26,7 @@
     - { src: dhparam.pem, dest: /etc/ssl/certs/dhparam.pem }
     - { src: pexpasswordpolicy, dest: /usr/share/pam-configs/pexpasswordpolicy }
     - { src: sshd_config, dest: /etc/ssh/sshd_config }
+    - { src: coturn_enable_cap_net_bind.conf, dest: /lib/systemd/system/coturn.service.d/enable_cap_net_bind.conf }
 
 - name: Set new password complexity policy
   become: yes
