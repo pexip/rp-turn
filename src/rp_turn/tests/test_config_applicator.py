@@ -656,6 +656,10 @@ class TestTurnServerSettings(TestDefaultSettings):
         else:
             self.assertNotIn("use-auth-secret", turnconf_file)
 
+        terminal = TestDefaultSettings.DummyTerminal
+        self.assertIn("/usr/bin/chown root:turnserver /etc/turnuserdb.conf", terminal)
+        self.assertIn("/usr/bin/chmod 640 /etc/turnuserdb.conf", terminal)
+
 
 class TestFail2BanSettings(TestDefaultSettings):
     """Test ConfigApplicator._apply_fail2ban"""

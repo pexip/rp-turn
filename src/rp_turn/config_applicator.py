@@ -329,7 +329,8 @@ class ConfigApplicator:
                 DEV_LOGGER.info("Run turnadmin shared-secret shell command")
                 run_turnuserdb_chmod = True
             if run_turnuserdb_chmod:
-                utils.run_shell("/bin/chmod 660 /etc/turnuserdb.conf")
+                utils.run_shell("/usr/bin/chown root:turnserver /etc/turnuserdb.conf")
+                utils.run_shell("/usr/bin/chmod 640 /etc/turnuserdb.conf")
             utils.run_shell("/bin/systemctl enable coturn")
         else:
             filewriter.HeadedFileWriter("/etc/default/coturn").write(
