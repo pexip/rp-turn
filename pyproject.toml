@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "rp-turn"
-version = "7.0.0"
+version = "7.1.0"
 description = "Pexip Reverse Proxy and Turn Server installwizard"
 authors = ["Pexip R&D <rd@pexip.com>"]
 license = "BSD-3-Clause"
