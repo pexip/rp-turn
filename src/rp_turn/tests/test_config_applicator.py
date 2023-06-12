@@ -179,6 +179,13 @@ def mock_check_call(
         TestDefaultSettings.DummyTerminal.append(command)
 
 
+def mock_os_remove(path: str):
+    """Dummy method for os.remove"""
+    if path not in TestDefaultSettings.DummyFileSystem:
+        raise FileNotFoundError(f"[Errno 2] No such file or directory: '{path}'")
+    TestDefaultSettings.DummyFileSystem.pop(path)
+
+
 class TestDefaultSettings(TestCase):
     """Base class to check if config values are applied"""
 
@@ -192,6 +199,7 @@ class TestDefaultSettings(TestCase):
         self._applicator = None
         self._function = None
 
+    @patch("os.remove")
     @patch("os.path.exists")
     @patch("subprocess.check_call")
     @patch("rp_turn.platform.filewriter.HeadedFileWriter")
@@ -202,6 +210,7 @@ class TestDefaultSettings(TestCase):
         headed_filewriter_mock,
         subprocess_mock,
         os_path_exists_mock,
+        os_remove_mock,
     ):
         """Runs the settings applied test"""
         self._applicator = installwizard.ConfigApplicator(self._config)
@@ -218,6 +227,7 @@ class TestDefaultSettings(TestCase):
         os_path_exists_mock.side_effect = (
             lambda path: path in TestDefaultSettings.DummyFileSystem
         )
+        os_remove_mock.side_effect = mock_os_remove
         self._function()
         self.is_settings_valid()
 

@@ -274,11 +274,13 @@ class ConfigApplicator:
                 "TURNSERVER_ENABLED=1"
             )
             DEV_LOGGER.info("Enabled turnserver")
+
+            # Ensure turnuserdb.conf is deleted to remove previous turn users
             try:
-                os.remove("/etc/turnuserdb.conf")  # Clear previous turn users
+                os.remove("/etc/turnuserdb.conf")
                 DEV_LOGGER.info("Removed previous turnuserdb")
-            except OSError:
-                DEV_LOGGER.exception("Unable to remove previous turnuserdb")
+            except FileNotFoundError:
+                pass
 
             run_turnuserdb_chmod = False
             if all(k in turnserver for k in ("username", "password")) and all(
