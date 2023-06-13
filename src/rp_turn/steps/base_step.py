@@ -179,6 +179,7 @@ class MultiStep(Step):
             msg += f"\nUse these default {self._step_msg}?"
             response = self.ask_yes_no(msg, default=True)
             if response:
+                self._final_step(config)
                 return
         if self._end_on_enter:
             self.display(
@@ -196,8 +197,12 @@ class MultiStep(Step):
 
             DEV_LOGGER.info("Saving answers to %s", self._keyname)
             utils.set_config_value_by_path(config, self._keyname, self._answers)
+            self._final_step(config)
             return
         answer = str(self.validate(response))
         self._answers.append(answer)
         DEV_LOGGER.info("Adding another _get_another_answer")
         self.questions.append(self._get_another_answer)
+
+    def _final_step(self, config: defaultdict) -> None:
+        """Perform any final stuff on a successful step"""
