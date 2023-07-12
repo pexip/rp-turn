@@ -5,7 +5,7 @@
   apt:
     state: present
     name:
-      - coturn
+      - coturn>=4.5.1
       - cron
       - fail2ban
       - iptables-persistent
