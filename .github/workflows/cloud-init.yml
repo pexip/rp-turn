@@ -9,6 +9,7 @@ jobs:
     container: ubuntu:22.04
     steps:
       - name: Install container dependencies
+        shell: bash
         run: |
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y cloud-init git pipx
