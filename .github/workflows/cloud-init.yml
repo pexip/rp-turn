@@ -6,10 +6,18 @@ on:
 jobs:
   syntax:
     runs-on: ubuntu-latest
+    container: ubuntu:22.04
     steps:
+      - name: Install container dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y cloud-init git pipx
       - uses: actions/checkout@v3
       - name: Install poetry
-        run: pipx install poetry
+        shell: bash
+        run: |
+          pipx install poetry
+          ln -s $HOME/.local/bin/poetry /usr/bin/poetry
       - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
