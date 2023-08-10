@@ -7,13 +7,12 @@ jobs:
   syntax:
     runs-on: ubuntu-latest
     container: ubuntu:22.04
-    env:
-      PATH: "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/.local/bin"
     steps:
       - name: Install container dependencies
         run: |
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y cloud-init git pipx
+          ln -s /root/.local/bin/poetry /usr/bin/poetry
       - uses: actions/checkout@v3
       - name: Install poetry
         run: pipx install poetry
