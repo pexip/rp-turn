@@ -6,7 +6,14 @@ on:
 jobs:
   syntax:
     runs-on: ubuntu-latest
+    container: ubuntu:22.04
     steps:
+      - name: Install container dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y cloud-init git pipx
+          pipx ensurepath
+          source ~/.bashrc
       - uses: actions/checkout@v3
       - name: Install poetry
         run: pipx install poetry
