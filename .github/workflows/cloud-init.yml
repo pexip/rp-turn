@@ -14,8 +14,13 @@ jobs:
           DEBIAN_FRONTEND=noninteractive apt-get install -y cloud-init git pipx
       - uses: actions/checkout@v3
       - name: Install poetry
+        shell: bash
         run: |
           pipx install poetry
-          ln -s /root/.local/bin/poetry /usr/bin/poetry
+          ln -s $HOME/.local/bin/poetry /usr/bin/poetry
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'poetry'
       - run: poetry install
       - run: poetry run invoke cloud-init.syntax
