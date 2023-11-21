@@ -1,3 +1,4 @@
+# pylint: disable=cyclic-import
 """Each step of the installwizard"""
 
 from rp_turn.steps.base_step import MultiStep, Step
