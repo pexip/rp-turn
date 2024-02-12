@@ -1,6 +1,7 @@
 """
 Pexip installation wizard step to configure SNMPv2c read only
 """
+
 import logging
 from collections import defaultdict
 from functools import partial

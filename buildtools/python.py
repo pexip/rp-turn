@@ -21,7 +21,7 @@ def isort(c, source=None, check=False):
 def black(c, source=None, check=False):
     source = source or c.python.source
     check_str = "--check " if check else ""
-    c.run(f"poetry run black {check_str}{source}")
+    c.run(f"poetry run black --target-version py38 {check_str}{source}")
 
 
 @task(setup_env)

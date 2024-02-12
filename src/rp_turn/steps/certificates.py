@@ -1,6 +1,7 @@
 """
 Pexip installation wizard step to generate certificates
 """
+
 import logging
 from collections import defaultdict
 from functools import partial

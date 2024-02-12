@@ -1,6 +1,7 @@
 """
 Pexip installation wizard step to setup a network interface
 """
+
 from __future__ import annotations
 
 import logging

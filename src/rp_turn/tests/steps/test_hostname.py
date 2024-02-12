@@ -1,6 +1,7 @@
 """
 Tests the HostnameStep from the installwizard
 """
+
 # Standard library imports
 import copy
 from functools import partial
