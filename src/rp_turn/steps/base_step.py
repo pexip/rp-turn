@@ -25,9 +25,9 @@ class Step:
         self._last_ask_errored = False
         self._last_msg = ""
         self.prompt = "> "
-        self.questions: list[
-            Callable[[defaultdict], None] | partial
-        ] = []  # Overwritten by child class
+        self.questions: list[Callable[[defaultdict], None] | partial] = (
+            []
+        )  # Overwritten by child class
         self._step_id = 0  # Overwritten by run
         self._total_steps = 0  # Overwritten by run
         self.stdin = sys.stdin
@@ -86,9 +86,11 @@ class Step:
         try:
             DEV_LOGGER.info(
                 "Calling %s question",
-                question.func.__name__
-                if isinstance(question, partial)
-                else question.__name__,
+                (
+                    question.func.__name__
+                    if isinstance(question, partial)
+                    else question.__name__
+                ),
             )
             question(config)
             self._last_ask_errored = False
@@ -99,9 +101,11 @@ class Step:
             self._last_ask_errored = True
             DEV_LOGGER.info(
                 "Question threw StepError. Readding %s as next question",
-                question.func.__name__
-                if isinstance(question, partial)
-                else question.__name__,
+                (
+                    question.func.__name__
+                    if isinstance(question, partial)
+                    else question.__name__
+                ),
             )
             self.questions.insert(0, question)
 

@@ -1,6 +1,7 @@
 """
 Test the ReverseProxy Config Applicator
 """
+
 from __future__ import annotations
 
 import copy

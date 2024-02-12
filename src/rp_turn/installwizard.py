@@ -2,7 +2,6 @@
 Pexip installation wizard.
 """
 
-
 from __future__ import annotations
 
 # Standard library imports
@@ -51,9 +50,9 @@ class InstallWizard:
         self._skip_ui = skip_ui
         self._skip_apply = skip_apply
         self._steps: list[steps.Step] = []
-        self._next_steps: list[
-            steps.Step
-        ] = []  # A list used to add additional steps after the current step
+        self._next_steps: list[steps.Step] = (
+            []
+        )  # A list used to add additional steps after the current step
         DEV_LOGGER.info("Using config path: %s", self._config_file_path)
 
         # Load saved_config from file and create an empty config to fill
