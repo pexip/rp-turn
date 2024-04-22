@@ -657,13 +657,13 @@ files = [
 
 [[package]]
 name = "types-passlib"
-version = "1.7.7.20240106"
+version = "1.7.7.20240327"
 description = "Typing stubs for passlib"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "types-passlib-1.7.7.20240106.tar.gz", hash = "sha256:2231ae83d1dd9e485b7ec6041d81b4f9c66403d1767360e860605a90db48ea27"},
-    {file = "types_passlib-1.7.7.20240106-py3-none-any.whl", hash = "sha256:347aa64d4c2bc239f3765fe38fc79dad3d67f9def7b3ea721daaaaa835a91dad"},
+    {file = "types-passlib-1.7.7.20240327.tar.gz", hash = "sha256:4cce6a1a3a6afee9fc4728b4d9784300764ac2be747f5bcc01646d904b85f4bb"},
+    {file = "types_passlib-1.7.7.20240327-py3-none-any.whl", hash = "sha256:3a3b7f4258b71034d2e2f4f307d6810f9904f906cdf375514c8bdbdb28a4ad23"},
 ]
 
 [[package]]
@@ -794,4 +794,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.0,<4.0"
-content-hash = "0cd4ecd7290ff8721b33e837e4ba3abdaf2c9f58e423a8d206a0bc0801a8e6cc"
+content-hash = "a0e73b59df9b2096a0a459cb2a4a233ce53d357efbcb0972587e58a94893f1c1"
