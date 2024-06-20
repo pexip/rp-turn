@@ -213,7 +213,10 @@ class MediaConferenceNodeStep(MultiStep):
 
     def _use_default(self, config: defaultdict) -> None:
         if not config["medianodes"]:
-            config["medianodes"] = config["conferencenodes"]
+            # Suggest using the conferencenode addresses if they were given as ip addresses
+            config["medianodes"] = utils.validated_config_value(
+                config, "conferencenodes", self.validate, value_list=True
+            )
         super()._use_default(config)
 
     def validate(self, response: str) -> IPv4Address:
