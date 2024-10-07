@@ -31,7 +31,7 @@ coverage = "^7.6.1"
 pylint = "^3.2.7"
 types-passlib = "^1.7.7.20240819"
 types-PyYAML = "^6.0.12.20240917"
-yarl = "^1.9.4"
+yarl = "^1.13.1"
 invoke = "^2.2.0"
 
 [tool.poetry.urls]
