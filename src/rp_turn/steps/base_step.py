@@ -109,7 +109,7 @@ class Step:
             )
             self.questions.insert(0, question)
 
-    def run(
+    def run(  # pylint: disable=too-many-positional-arguments
         self,
         config: defaultdict,
         step_id: int,

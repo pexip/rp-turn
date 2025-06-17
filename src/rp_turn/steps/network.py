@@ -20,7 +20,7 @@ DEV_LOGGER = logging.getLogger("rp_turn.installwizard")
 class NetworkStep(Step):
     """Step to setup a nic"""
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-positional-arguments
         self,
         nic_name: str,
         nic_mac: str,

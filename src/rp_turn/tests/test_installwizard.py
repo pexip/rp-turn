@@ -105,14 +105,15 @@ def get_installwizard(
     )
 
     # monkeypatches
-    with patch.object(installwizard, "open", open_mock, create=True), patch.object(
-        sys, "stdout", print_mock, create=True
-    ), patch.object(steps.dns, "open", open_mock, create=True), patch.object(
-        steps.hostname, "open", open_mock, create=True
-    ), patch.object(
-        os, "listdir", os_listdir_mock, create=True
-    ), patch.object(
-        subprocess, "check_output", subprocess_check_output_mock, create=True
+    with (
+        patch.object(installwizard, "open", open_mock, create=True),
+        patch.object(sys, "stdout", print_mock, create=True),
+        patch.object(steps.dns, "open", open_mock, create=True),
+        patch.object(steps.hostname, "open", open_mock, create=True),
+        patch.object(os, "listdir", os_listdir_mock, create=True),
+        patch.object(
+            subprocess, "check_output", subprocess_check_output_mock, create=True
+        ),
     ):
         return installwizard.InstallWizard(
             skip_ui=skip_ui,
@@ -398,8 +399,9 @@ class TestInstallWizard(TestCase):
         wizard._gather_user_input = mock.MagicMock()
         wizard._save_user_config = mock.MagicMock()
         wizard._apply_user_config = mock.MagicMock()
-        with patch.object(os, "system", mock.MagicMock(), create=True), patch.object(
-            time, "sleep", mock.MagicMock(), create=True
+        with (
+            patch.object(os, "system", mock.MagicMock(), create=True),
+            patch.object(time, "sleep", mock.MagicMock(), create=True),
         ):
             fake_out = StringIO()
             sys.stdout = fake_out

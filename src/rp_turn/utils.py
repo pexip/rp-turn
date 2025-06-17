@@ -81,7 +81,7 @@ def set_config_value_by_path(
         config_value[path] = value
 
 
-def validated_config_value(
+def validated_config_value(  # pylint: disable=too-many-positional-arguments
     saved_config: defaultdict[str, _T],
     key: str,
     validation: Callable[[Any], Any] | partial[_T],

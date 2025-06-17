@@ -205,7 +205,7 @@ class TestDefaultSettings(TestCase):
     @patch("subprocess.check_call")
     @patch("rp_turn.platform.filewriter.HeadedFileWriter")
     @patch("rp_turn.platform.filewriter.FileWriter")
-    def _run_settings_applied_test(
+    def _run_settings_applied_test(  # pylint: disable=too-many-positional-arguments
         self,
         filewriter_mock,
         headed_filewriter_mock,
