@@ -6,7 +6,7 @@ on:
 jobs:
   syntax:
     runs-on: ubuntu-latest
-    container: ubuntu:22.04
+    container: ubuntu:24.04
     steps:
       - name: Install container dependencies
         run: |

@@ -36,22 +36,6 @@ def download(c, url, name):
 
 
 @task
-def bullseye(c, cloud_init=None, no_compress=False):
-    image_filename = "debian-bullseye.qcow2"
-    download(
-        c,
-        url="https://cloud.debian.org/images/cloud/bullseye/latest/debian-11-generic-amd64.qcow2",
-        name=image_filename,
-    )
-    build_image = virt_install(c, image_filename=image_filename, cloud_init=cloud_init)
-    out_image = c.vmbuild.out_dir / image_filename
-    if not no_compress:
-        virt_sparsify(c, build_image, out_image)
-    else:
-        shutil.copy(build_image, out_image)
-
-
-@task
 def bookworm(c, cloud_init=None, compress=True):
     image_filename = "debian-bookworm.qcow2"
     download(
@@ -67,6 +51,6 @@ def bookworm(c, cloud_init=None, compress=True):
         shutil.copy(build_image, out_image)
 
 
-@task(bullseye, bookworm, default=True)
+@task(bookworm, default=True)
 def all(c):
     pass

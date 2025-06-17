@@ -56,11 +56,11 @@ def download(c, url, name, minimal):
 
 
 @task
-def jammy(c, cloud_init=None, no_compress=False):
-    image_filename = "ubuntu-jammy.img"
+def noble(c, cloud_init=None, no_compress=False):
+    image_filename = "ubuntu-noble.img"
     download(
         c,
-        url="https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img",
+        url="https://cloud-images.ubuntu.com/noble/current/noble-server-cloudimg-amd64.img",
         name=image_filename,
         minimal=False,
     )
@@ -73,11 +73,11 @@ def jammy(c, cloud_init=None, no_compress=False):
 
 
 @task
-def jammy_minimal(c, cloud_init=None, no_compress=False):
-    image_filename = "ubuntu-jammy-minimal.img"
+def noble_minimal(c, cloud_init=None, no_compress=False):
+    image_filename = "ubuntu-noble-minimal.img"
     download(
         c,
-        url="https://cloud-images.ubuntu.com/minimal/releases/jammy/release/ubuntu-22.04-minimal-cloudimg-amd64.img",
+        url="https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-amd64.img",
         name=image_filename,
         minimal=True,
     )
@@ -88,41 +88,6 @@ def jammy_minimal(c, cloud_init=None, no_compress=False):
     else:
         shutil.copy(build_image, out_image)
 
-
-@task
-def focal(c, cloud_init=None, no_compress=False):
-    image_filename = "ubuntu-focal.img"
-    download(
-        c,
-        url="https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img",
-        name=image_filename,
-        minimal=False,
-    )
-    build_image = virt_install(c, image_filename=image_filename, cloud_init=cloud_init)
-    out_image = c.vmbuild.out_dir / image_filename
-    if not no_compress:
-        virt_sparsify(c, build_image, out_image)
-    else:
-        shutil.copy(build_image, out_image)
-
-
-@task
-def focal_minimal(c, cloud_init=None, no_compress=False):
-    image_filename = "ubuntu-focal-minimal.img"
-    download(
-        c,
-        url="https://cloud-images.ubuntu.com/minimal/releases/focal/release/ubuntu-20.04-minimal-cloudimg-amd64.img",
-        name=image_filename,
-        minimal=True,
-    )
-    build_image = virt_install(c, image_filename=image_filename, cloud_init=cloud_init)
-    out_image = c.vmbuild.out_dir / image_filename
-    if not no_compress:
-        virt_sparsify(c, build_image, out_image)
-    else:
-        shutil.copy(build_image, out_image)
-
-
-@task(jammy, jammy_minimal, focal, focal_minimal, default=True)
+@task(noble, noble_minimal, default=True)
 def all(c):
     pass

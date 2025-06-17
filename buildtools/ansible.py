@@ -22,23 +22,11 @@ def debian_bookworm(c, image_name=None):
 
 
 @task(syntax)
-def debian_bullseye(c, image_name=None):
-    """run ansible inside a container to validate the ansible config"""
-    docker_build(c, "debian:bullseye", image_name)
-
-
-@task(syntax)
-def ubuntu_focal(c, image_name=None):
-    """run ansible inside a container to validate the ansible config"""
-    docker_build(c, "ubuntu:20.04", image_name)
-
-
-@task(syntax)
-def ubuntu_jammy(c, image_name=None):
+def ubuntu_noble(c, image_name=None):
     """run ansible inside a container to validate the ansible config"""
     docker_build(c, "ubuntu:22.04", image_name)
 
 
-@task(ubuntu_jammy, debian_bookworm, ubuntu_focal, debian_bullseye, default=True)
+@task(ubuntu_noble, debian_bookworm, default=True)
 def all(c):
     pass
