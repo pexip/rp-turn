@@ -25,9 +25,7 @@ jobs:
       matrix:
         base-os:
           - debian-bookworm
-          - debian-bullseye
-          - ubuntu-focal
-          - ubuntu-jammy
+          - ubuntu-noble
     steps:
       - uses: actions/checkout@v4
       - name: Install poetry

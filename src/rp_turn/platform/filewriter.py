@@ -20,7 +20,7 @@ class FileWriter:
         """
         self._path = path
 
-    def write(
+    def write(  # pylint: disable=too-many-positional-arguments
         self,
         contents: str,
         mode: int = 0o644,
@@ -81,7 +81,7 @@ class FileWriter:
 class HeadedFileWriter(FileWriter):
     """File writer for headed files."""
 
-    def write(
+    def write(  # pylint: disable=too-many-positional-arguments
         self,
         contents: str,
         mode: int = 0o644,
