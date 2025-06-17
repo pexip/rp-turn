@@ -18,15 +18,15 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.dependencies]
 python = ">=3.8.0,<4.0"
 passlib = "^1.7.4"
-Jinja2 = "^3.1.5"
+Jinja2 = "^3.1.6"
 PyYAML = "^6.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.8.0"
 isort = "^5.13.2"
 mypy = "^1.14.1"
-mypy-extensions = "^1.0.0"
-pytest = "^8.3.4"
+mypy-extensions = "^1.1.0"
+pytest = "^8.3.5"
 coverage = "^7.6.1"
 pylint = "^3.2.7"
 types-passlib = "^1.7.7.20241221"
