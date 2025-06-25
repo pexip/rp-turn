@@ -12,7 +12,7 @@ import rp_turn.tests.steps as tests
 import rp_turn.tests.utils as test_utils
 
 # Local application/library specific imports
-from rp_turn import steps
+from rp_turn import steps, utils
 
 STEPCLASS = steps.TurnServerStep
 
@@ -168,6 +168,44 @@ class TestGetMediaConfNode(tests.TestMultiQuestion, tests.TestMultiDefaultConfig
             test_utils.INVALID_IP_ADDRESSES
             + test_utils.INVALID_DOMAINS
             + test_utils.VALID_DOMAIN_NAMES
+        )
+
+    def test_default_from_conferencenodes_fqdn(self):
+        """
+        Don't suggest to use the conference node addresses as they are fqdn
+        """
+        step = self._step()
+        config = utils.nested_dict()
+        config["conferencenodes"] = [
+            "conf-1.pexip.local",
+            "conf-2.pexip.local",
+        ]
+        question, _, _ = self.setup_question(
+            "Yes", step=step, question_str="_use_default"
+        )
+        question(config)
+        self.assertFalse(config["medianodes"])
+
+    def test_default_from_conferencenodes_ip_address(self):
+        """
+        Suggest to use the conference node addresses only if they are valid IP addresses
+        """
+        step = self._step()
+        config = utils.nested_dict()
+        config["conferencenodes"] = [
+            "1.1.1.1",
+            "2.2.2.2",
+        ]
+        question, _, _ = self.setup_question(
+            "Yes", step=step, question_str="_use_default"
+        )
+        question(config)
+        self.assertEqual(
+            config["medianodes"],
+            [
+                "1.1.1.1",
+                "2.2.2.2",
+            ],
         )
 
 

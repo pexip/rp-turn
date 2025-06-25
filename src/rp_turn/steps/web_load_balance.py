@@ -1,18 +1,27 @@
 """
-Pexip installation wizard step to setup fail2ban
+Pexip installation wizard step to setup web load balancer
 """
 
 from __future__ import annotations
 
 import logging
 from collections import defaultdict
+from enum import Enum, auto
 from functools import partial
 from ipaddress import IPv4Address
 
 from rp_turn import utils
+from rp_turn.step_error import StepError
 from rp_turn.steps.base_step import MultiStep, Step
 
 DEV_LOGGER = logging.getLogger("rp_turn.installwizard")
+
+
+class AddressType(Enum):
+    """Enum to determine address type"""
+
+    IP_ADDRESS = auto()
+    FQDN = auto()
 
 
 class WebLoadBalanceStep(Step):
@@ -59,19 +68,55 @@ class SignalingConferenceNodeStep(MultiStep):
     """Step to set the conference node ip addresses"""
 
     def __init__(self) -> None:
-        super().__init__(
-            "IP Address of Signaling Conferencing Nodes", "conferencenodes"
+        super().__init__("Address of Signaling Conferencing Nodes", "conferencenodes")
+        self.questions = [self.intro] + self.questions
+        self._address_type: AddressType | None = None
+
+    def intro(self, _config: defaultdict) -> None:
+        """Explain difference between FQDN and IP addresses"""
+        self.display(
+            """\
+The reverse proxy can be configured to relay to either FQDNs or IP addresses.
+If FQDNs are used, the upstream TLS certificates will be verified.
+If IP addresses are used, the transport will still be HTTPS, but the certificates will NOT be verified.
+
+Enter in either FQDNs or IP addresses
+"""
         )
 
-    def validate(self, response: str) -> IPv4Address:
+    def validate(self, response: str) -> IPv4Address | str:
         DEV_LOGGER.info("Response: %s", response)
-        return utils.validate_ip(response)
+        # once a type is chosen, all the items must be of this type
+        if self._address_type == AddressType.IP_ADDRESS:
+            return utils.validate_ip(response)
+        if self._address_type == AddressType.FQDN:
+            return utils.validate_domain(response)
+
+        # try to guess which type this is
+        try:
+            parsed_domain = utils.validate_domain(response)
+            self._address_type = AddressType.FQDN
+            return parsed_domain
+        except StepError:
+            pass  # wasn't an FQDN
+
+        # try an IP address, fail if not
+        parsed_ip: IPv4Address = utils.validate_ip(response)
+        self._address_type = AddressType.IP_ADDRESS
+        return parsed_ip
+
+    def _final_step(self, config: defaultdict) -> None:
+        config["verify_upstream_tls"] = self._address_type == AddressType.FQDN
 
     def default_config(self, saved_config: defaultdict, config: defaultdict) -> None:
         DEV_LOGGER.info("Getting from saved_config: conferencenodes")
-        config["conferencenodes"] = utils.validated_config_value(
-            saved_config, "conferencenodes", self.validate, value_list=True
-        )
+        try:
+            config["conferencenodes"] = utils.validated_config_value(
+                saved_config, "conferencenodes", self.validate, value_list=True
+            )
+        finally:
+            # validate would set the address_type. clear it to allow it to be changed.
+            self._address_type = None
 
 
 class ContentSecurityPolicyStep(Step):
